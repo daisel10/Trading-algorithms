@@ -1,0 +1,23 @@
+[tasks.default]
+run_task = "dev"
+
+[tasks.dev]
+description = "Ejecuta el CLI en entorno de desarrollo"
+env = { ENV = "dev" }
+workspace = false
+command = "cargo"
+args = ["run", "-p", "cli"]
+
+[tasks.prod]
+description = "Ejecuta el CLI en entorno de producción"
+env = { ENV = "prod" }
+workspace = false
+command = "cargo"
+args = ["run", "-p", "cli", "--release"]
+
+[tasks.test]
+description = "Ejecuta los tests con entorno de test"
+env = { ENV = "test" }
+workspace = false
+command = "cargo"
+args = ["test", "-p", "aplicacion"]

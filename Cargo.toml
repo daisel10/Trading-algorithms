@@ -1,0 +1,12 @@
+[workspace]
+resolver = "3"
+members = [
+    "dominio",
+    "strategies/intra",
+    "strategies/inter",
+    "infrastructure/okx",
+    "infrastructure/ibkr",
+    # "infrastructure/simulador",
+    "interfaces/cli",
+    "configuration"
+]
