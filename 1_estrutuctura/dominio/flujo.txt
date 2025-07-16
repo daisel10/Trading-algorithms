@@ -1,0 +1,54 @@
+[1]  Servicio de Dominio  (p. ej. pricing::execute_triangular_spread)
+     └─> Recibe parámetros ya convertidos a Value Objects (Money, Symbol, Spread)
+
+[2]  Construcción / Validación de VOs
+     ├─ Money::new(amount, currency)          // invariante: amount ≥ 0
+     ├─ Symbol::try_from("BTC/USDT")?         // invariante: formato XXX/YYY
+     └─ Spread::from_quotes(bid, ask)         // invariante: bid < ask
+         ↳ Si falla → return DomainError::InvalidValueObject
+
+[3]  Carga del Aggregate Root  (Portfolio)
+     └─ Portfolio::hydrate(entities…)         // data in-memory aún sin tocar BD
+
+[4]  Llamada al método de dominio
+     Portfolio::place_order(order_params)
+     ├─ Crea Entidad Order(id, symbol, qty, price)
+     ├─ Aplica Specification::ValidSpread(&self, &order)
+     │     • Regla reutilizable; si false -> DomainError::InvalidSpread
+     ├─ Consulta Policy::PositionSizing(self, &order)
+     │     • Usa Money, RiskLimits VO; si excede -> DomainError::RiskLimitExceeded
+     ├─ Mutación interna (self.block_funds(&order))
+     └─ Emite DomainEvent::OrderCreated(order.snapshot())
+
+[5]  Colecta de Eventos
+     └─ Vec<DomainEvent> = self.pull_pending_events()
+
+[6]  Revisión de Reglas Derivadas (Policies)
+     ├─ Policy::PortfolioLeverage(self)        // dispara ajuste si > threshold
+     └─ Puede emitir DomainEvent::LeverageBreached
+
+[7]  Servicio de Dominio agrega contexto
+     ├─ Llama risk::recalc_metrics(&portfolio)
+     └─ Puede emitir DomainEvent::RiskMetricsUpdated
+
+[8]  Devuelve Resultado Puro
+     └─ Result<(PortfolioSnapshot, Vec<DomainEvent>), DomainError>
+          • Snapshot inmutable (solo VOs y DTOs internos)
+          • No side-effects aún: solo describe *qué* pasó
+
+
+
+Value Objects  <─┐
+   ▲             │  usados para construir
+   │             │
+Entities ────┐   │  viven dentro del
+   ▲         │   │
+   │   Aggregate Root (Portfolio)   <-- controla invariantes
+   │         │   │
+Specifications│  │  validan reglas atómicas y reutilizables
+Policies  ────┘  │  gobiernan reglas compuestas/cross-entity
+   │             │
+Domain Events ───┘  registran hechos consumados (inmutables)
+    ▲
+    │ posibles reacciones encadenadas (síncronas)
+Domain Services ────────────── resultado puro + errores
