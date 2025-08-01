@@ -39,16 +39,16 @@
 
 
 Value Objects  <─┐
-   ▲             │  usados para construir
+   ▲             │  
    │             │
-Entities ────┐   │  viven dentro del
+Entities ────┐   │  
    ▲         │   │
    │   Aggregate Root (Portfolio)   <-- controla invariantes
    │         │   │
-Specifications│  │  validan reglas atómicas y reutilizables
-Policies  ────┘  │  gobiernan reglas compuestas/cross-entity
+   |          │  │  
+Policies  ────┘  │  
    │             │
-Domain Events ───┘  registran hechos consumados (inmutables)
+Domain Events ───┘  
     ▲
-    │ posibles reacciones encadenadas (síncronas)
+    │ 
 Domain Services ────────────── resultado puro + errores

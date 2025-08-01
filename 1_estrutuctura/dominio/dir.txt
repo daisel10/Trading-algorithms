@@ -1,0 +1,14 @@
+dominio/                               # Crate raíz (dominio puro de la app)
+└── src
+    ├── errors/                        # Jerarquía de errores de dominio
+    ├── value_objects/                 # Objetos de Valor (inmutables, sin identidad)
+    ├── entities/                      # Entidades con identidad propia
+    ├── aggregates/                    # Aggregates Roots y consistencia transaccional
+    ├── services/                      # Servicios del dominio (lógica pura, sin IO)
+    │   └── domain/                    # ⇢ Separados de la capa de aplicación
+    ├── specifications/                # Reglas reutilizables (Specification Pattern)
+    ├── policies/                      # Domain Policies (reglas que cruzan entidades/VOs)
+    ├── events/                        # Eventos de dominio
+    ├── repositories/                  # Interfaces de persistencia (puertos salientes)
+    ├── contracts/                     # Interfaces hacia otros BCs/gateways
+    └── tests/                         # Pruebas de integración / BDD del dominio

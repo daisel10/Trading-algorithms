@@ -1,0 +1,45 @@
+flowchart TD
+    %% ========= CAPA DE DOMINIO =========
+    subgraph "services/"
+        S_Detect[services/deteccion_arbitraje::ServicioDeteccionArbitraje]
+    end
+
+    subgraph "specifications/"
+        Spec_Viable{specifications/spread_minimo + volume_ok :: ¿Oportunidad viable?}
+    end
+
+    subgraph "policies/"
+        Pol_Exec{policies/ejecucion::¿Ejecutar arbitraje?}
+    end
+
+    subgraph "aggregates/"
+        Agg[aggregates/arbitraje_spot_futuros::ArbitrajeSpotFuturos]
+    end
+
+    subgraph "events/"
+        Ev_Opp((events/oportunidad_detectada::OportunidadDetectada))
+        Ev_Exec((events/arbitraje_ejecutado::ArbitrajeEjecutado))
+        Ev_Fail((events/arbitraje_fallido::ArbitrajeFallido))
+    end
+
+    %% ========= CONTRATOS / PUERTOS =========
+    subgraph "contracts/"
+        C_Price[contracts/fuente_de_precios::FuenteDePrecios]
+        C_Broker[contracts/broker_api::BrokerAPI]
+    end
+
+    %% ========= FLUJO PRINCIPAL =========
+    S_Detect -->|Solicita precios spot/futuros| C_Price
+    C_Price -->|Precios recibidos| Spec_Viable
+
+    Spec_Viable -- No --> NotViable[✗ Rechazado  events opcionales]
+    Spec_Viable -- Sí --> Agg
+
+    Agg -->|Publica| Ev_Opp
+    Ev_Opp --> Pol_Exec
+
+    Pol_Exec -- No --> NoExec[↷ Se almacena pero\nno se ejecuta]
+    Pol_Exec -- Sí --> C_Broker
+
+    C_Broker -->|Órdenes ejecutadas OK| Ev_Exec
+    C_Broker -->|Error/rechazo| Ev_Fail

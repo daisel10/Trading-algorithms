@@ -4,3 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+rust_decimal = { version = "1", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2.0"
+uuid = { version = "1", features = ["serde", "v4"] }
+
+
+[[example]]
+name = "quick_demo"
+path = "example/quick_demo.rs"
