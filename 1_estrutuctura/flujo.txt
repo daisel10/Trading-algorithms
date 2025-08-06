@@ -1,7 +1,0 @@
-interfaces (CLI, Web, etc)
-        ↓
-aplicacion (Casos de uso)
-        ↓
-dominio (Modelos, contratos)
-        ↑
-infraestructura (implementaciones)

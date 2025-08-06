@@ -3,19 +3,12 @@ proyecto-arbitraje/
 ├── dominio/                          # Capa de Dominio común (lógica de negocio central compartida)
 │   ├── Cargo.toml
 │   └── src/
-│       ├── entidades.rs              # Entidades del dominio (p. ej. Orden, Broker, Mercado)
-│       ├── agregados.rs              # Agregados del dominio (si aplica)
-│       ├── valores.rs                # Objetos de Valor (Value Objects) inmutables
-│       ├── contratos.rs              # Contratos (interfaces/traits) del dominio (p. ej. repos, servicios)
-│       ├── servicios.rs              # Servicios de dominio (lógica de negocio pura que no cabe en entidades)
 │       └── lib.rs                    # Punto de acceso de la crate (define módulos públicos)
 ├── strategies/                      # Estrategias de arbitraje (subcrates de la capa de Aplicación)
 │   ├── intra/                        # Estrategia de arbitraje *intra-broker* (dentro de un mismo broker)
 │   │   ├── Cargo.toml
 │   │   └── src/
 │   │       ├── aplicacion/           # Lógica de aplicación (casos de uso, comandos) de arbitraje intra-broker
-│   │       │   ├── casos_uso.rs      # Implementaciones de casos de uso (orquestan operaciones de dominio)
-│   │       │   └── comandos.rs       # Comandos/servicios de aplicación específicos de esta estrategia
 │   │       ├── dominio/             # (Opcional) Extensiones de dominio específicas de intra-broker
 │   │       │   └── ...              # Ej: entidades o VOs particulares solo para esta estrategia
 │   │       └── lib.rs
@@ -23,8 +16,6 @@ proyecto-arbitraje/
 │       ├── Cargo.toml
 │       └── src/
 │           ├── aplicacion/           # Lógica de aplicación de arbitraje inter-broker
-│           │   ├── casos_uso.rs      # Casos de uso para inter-broker (p. ej. detectar y ejecutar arbitraje entre mercados)
-│           │   └── comandos.rs       # Comandos/servicios de aplicación específicos de inter-broker
 │           ├── dominio/             # (Opcional) Extensiones de dominio para inter-broker
 │           │   └── ...              # Ej: reglas o entidades propias de esta variante de estrategia
 │           └── lib.rs
@@ -50,5 +41,4 @@ proyecto-arbitraje/
     ├── Cargo.toml
     └── src/
         ├── lib.rs                    # Inicialización centralizada de la aplicación (composición de estrategias y adaptadores)
-        ├── settings.rs               # Definiciones de configuración (p. ej. structs para archivo TOML/JSON, parámetros)
         └── config.toml               # (Ejemplo) Archivo de configuración de la aplicación (brokers, estrategia activa, etc.)
