@@ -2,14 +2,13 @@
 
 ## 1. Visión
 
-Desarrollar una plataforma **modular y extensible** que ejecute estrategias de arbitraje dentro de un mismo broker (OKX como primera implementación) intercambiando posiciones **spot** y **perpetuos** para capturar ineficiencias de precio con la menor latencia posible y riesgo controlado.
+Desarrollar una plataforma **modular y extensible** que ejecute  diferentes estrategias de arbitraje, se va a inciar con ejecuciones de un mismo broker (OKX como primera implementación) intercambiando posiciones **spot** y **perpetuos** para capturar ineficiencias de precio con la menor latencia posible y riesgo controlado.
 
 ## 2. Objetivos
 
 1. **MVP** capaz de identificar spreads spot ⇄ perpetuos y abrir/cerrar posiciones automáticamente.
 2. Arquitectura **Clean Architecture + Hexagonal + DDD Táctico** que permita añadir nuevas estrategias (inter‑broker, triangular, estadístico) como módulos independientes.
 3. Garantizar **tolerancia a fallos**; el bot debe retomar operaciones tras reinicios sin perder contexto.
-4. Exponer **CLI** para operar y supervisar, y API Web (futuro) para orquestación externa.
 
 ## 3. Alcance – Iteración 0
 
@@ -45,15 +44,48 @@ Desarrollar una plataforma **modular y extensible** que ejecute estrategias de a
 proyecto-arbitraje/
 ├── Cargo.toml                        # Archivo de configuración del workspace (lista los miembros/crates)
 ├── dominio/                          # Capa de Dominio común (lógica de negocio central compartida)
+│   ├── Cargo.toml
+│   └── src/
+│       └── lib.rs                    # Punto de acceso de la crate (define módulos públicos)
 ├── strategies/                      # Estrategias de arbitraje (subcrates de la capa de Aplicación)
-│   ├── intra/                        # Estrategia de arbitraje *intra-broker* 
-│   └── inter/                        # Estrategia de arbitraje *inter-broker* 
-├── infrastructure/                   # Adaptadores y conectores externos (capa de Infraestructura)
+│   ├── intra/                        # Estrategia de arbitraje *intra-broker* (dentro de un mismo broker)
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       ├── aplicacion/           # Lógica de aplicación (casos de uso, comandos) de arbitraje intra-broker
+│   │       ├── dominio/             # (Opcional) Extensiones de dominio específicas de intra-broker
+│   │       │   └── ...              # Ej: entidades o VOs particulares solo para esta estrategia
+│   │       └── lib.rs
+│   └── inter/                        # Estrategia de arbitraje *inter-broker* (entre brokers diferentes)
+│       ├── Cargo.toml
+│       └── src/
+│           ├── aplicacion/           # Lógica de aplicación de arbitraje inter-broker
+│           ├── dominio/             # (Opcional) Extensiones de dominio para inter-broker
+│           │   └── ...              # Ej: reglas o entidades propias de esta variante de estrategia
+│           └── lib.rs
+├── infrastructure/                  # Adaptadores y conectores externos (capa de Infraestructura)
 │   ├── okx/                          # Conector para broker OKX (implementa contratos del dominio)
+│   │   ├── Cargo.toml
+│   │   └── src/
+│   │       └── lib.rs                # Implementaciones de APIs/servicios para OKX según interfaces de dominio
+│   ├── ibkr/                         # Conector para broker IBKR (Interactive Brokers)
+│   │   ├── Cargo.toml
+│   │   └── src/ ...                  # Lógica de acceso a IBKR implementando los traits del dominio
+│   ├── simulador/                    # Conector simulador (broker simulado para pruebas)
+│   │   ├── Cargo.toml
+│   │   └── src/ ...                  # Implementación simulada de interfaces (útil en tests/desarrollo)
 │   └── ... (otros adaptadores)       # Ejemplos: base de datos, servicios externos adicionales, etc.
 ├── interfaces/                       # Interfaces de entrada (capa de Interfaces/Presentación)
-│   └── cli/                          # Aplicación CLI (interfaz de línea de comando para el usuario)
+│   └── zombot_core/                          # Aplicación Bot (interfaz de línea de comando para el usuario)
+│       ├── Cargo.toml
+│       └── src/
+│           ├── main.rs               # Punto de entrada de la aplicación Bot (función main)
+│           └── bot_args.rs           # Definición de comandos/argumentos Bot (p.ej. usando clap) y selección de estrategia
 └── settings/                    # Capa de Configuración (composición de dependencias e inyección)
+    ├── Cargo.toml
+    └── src/
+        ├── lib.rs                    # Inicialización centralizada de la aplicación (composición de estrategias y adaptadores)
+        └── config.toml               # (Ejemplo) Archivo de configuración de la aplicación (brokers, estrategia activa, etc.)
+
 
 ```
 
@@ -85,7 +117,7 @@ dominio/                               # Crate raíz (dominio puro de la app)
 | Lenguaje principal | **Rust 1.78**                                     | Seguridad de memoria, performance |
 | Runtime async      | **Tokio** (multi‑scheduler)                       | Concurrencia masiva               |
 | Persistencia TS    | **TimescaleDB 2.x** (extensión PostgreSQL)        | Consultas time‑series eficientes  |
-| ORM / DB Layer     | **sqlx async** (y **Diesel** para consultas sync) | Performance + type‑safety         |
+| ORM / DB Layer     | **sqlx async** y **Diesel** para consultas sync | Performance + type‑safety         |
 | Cache & Queue      | **Redis 7** (opcional)                            | Pub/Sub, caching, locks           |
 | Brokers SDK        | **OKX REST & WS** (custom crate)                  | Ejecución low‑latency             |
 | Testing            | **cargo nextest**, **proptest**                   | Concurrency‑aware tests           |

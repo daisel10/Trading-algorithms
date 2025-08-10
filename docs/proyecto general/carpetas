@@ -32,11 +32,11 @@ proyecto-arbitraje/
 │   │   └── src/ ...                  # Implementación simulada de interfaces (útil en tests/desarrollo)
 │   └── ... (otros adaptadores)       # Ejemplos: base de datos, servicios externos adicionales, etc.
 ├── interfaces/                       # Interfaces de entrada (capa de Interfaces/Presentación)
-│   └── cli/                          # Aplicación CLI (interfaz de línea de comando para el usuario)
+│   └── zombot_core/                          # Aplicación Bot (interfaz de línea de comando para el usuario)
 │       ├── Cargo.toml
 │       └── src/
-│           ├── main.rs               # Punto de entrada de la aplicación CLI (función main)
-│           └── cli_args.rs           # Definición de comandos/argumentos CLI (p.ej. usando clap) y selección de estrategia
+│           ├── main.rs               # Punto de entrada de la aplicación Bot (función main)
+│           └── bot_args.rs           # Definición de comandos/argumentos Bot (p.ej. usando clap) y selección de estrategia
 └── settings/                    # Capa de Configuración (composición de dependencias e inyección)
     ├── Cargo.toml
     └── src/
