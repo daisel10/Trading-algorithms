@@ -7,6 +7,6 @@ members = [
     "infrastructure/okx",
     "infrastructure/ibkr",
     # "infrastructure/simulador",
-    "interfaces/cli",
+    "interfaces/zombot_core",
     "configuration"
 ]
