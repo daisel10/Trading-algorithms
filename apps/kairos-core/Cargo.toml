@@ -1,0 +1,35 @@
+[package]
+name = "kairos-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "kairos-core"
+path = "src/main.rs"
+
+[dependencies]
+# Workspace dependencies
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+redis.workspace = true
+tonic.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+config.workspace = true
+
+# Shared libraries
+kairos-domain.workspace = true
+kairos-proto.workspace = true
+
+# Additional dependencies
+futures = "0.3"
+dashmap = "6.1"

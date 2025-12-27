@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package trading_engine;
+
+// Service for external systems to communicate with the trading core
+service TradingEngine {
+    // Place a new order
+    rpc PlaceOrder (OrderRequest) returns (OrderResponse);
+    
+    // Cancel an existing order
+    rpc CancelOrder (CancelOrderRequest) returns (OrderResponse);
+    
+    // Get current account balance
+    rpc GetBalance (BalanceRequest) returns (BalanceResponse);
+    
+    // Get order status
+    rpc GetOrderStatus (OrderStatusRequest) returns (OrderStatusResponse);
+}
+
+// Order placement request
+message OrderRequest {
+    string symbol = 1;
+    OrderSide side = 2;
+    OrderType order_type = 3;
+    double quantity = 4;
+    optional double price = 5;
+}
+
+// Order cancellation request
+message CancelOrderRequest {
+    string order_id = 1;
+}
+
+// Balance request
+message BalanceRequest {
+    string currency = 1;
+}
+
+// Order status request
+message OrderStatusRequest {
+    string order_id = 1;
+}
+
+// Order response
+message OrderResponse {
+    bool success = 1;
+    string order_id = 2;
+    string message = 3;
+    OrderStatus status = 4;
+}
+
+// Balance response
+message BalanceResponse {
+    double available = 1;
+    double locked = 2;
+    double total = 3;
+}
+
+// Order status response
+message OrderStatusResponse {
+    string order_id = 1;
+    OrderStatus status = 2;
+    double filled_quantity = 3;
+    double average_price = 4;
+}
+
+// Enumerations
+enum OrderSide {
+    BUY = 0;
+    SELL = 1;
+}
+
+enum OrderType {
+    MARKET = 0;
+    LIMIT = 1;
+}
+
+enum OrderStatus {
+    PENDING = 0;
+    APPROVED = 1;
+    REJECTED = 2;
+    EXECUTED = 3;
+    CANCELLED = 4;
+}

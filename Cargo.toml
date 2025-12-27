@@ -1,0 +1,64 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "apps/kairos-core",
+    "apps/kairos-api",
+    "libs/kairos-domain",
+    "libs/kairos-proto",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["KAIRÓS Team"]
+license = "MIT"
+repository = "https://github.com/your-org/kairos-monorepo"
+
+[workspace.dependencies]
+# Async Runtime
+tokio = { version = "1.41", features = ["full"] }
+tokio-tungstenite = "0.24"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "postgres", "chrono", "uuid"] }
+redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+
+# gRPC
+tonic = "0.12"
+tonic-build = "0.12"
+prost = "0.13"
+
+# GraphQL (for kairos-api)
+async-graphql = "7.0"
+async-graphql-axum = "7.0"
+
+# Web Framework
+axum = "0.8"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error Handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Time & Date
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID
+uuid = { version = "1.10", features = ["serde", "v4"] }
+
+# Config
+config = "0.14"
+
+# Shared domain library
+kairos-domain = { path = "libs/kairos-domain" }
+kairos-proto = { path = "libs/kairos-proto" }

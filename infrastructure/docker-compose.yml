@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # DragonflyDB - Redis-compatible in-memory database for hot data
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: kairos-dragonfly
+    ports:
+      - "6379:6379"
+    command: 
+      - "--maxmemory=2gb"
+      - "--save_schedule=*:*"
+    volumes:
+      - dragonfly_data:/data
+    networks:
+      - kairos-network
+
+  # TimescaleDB - PostgreSQL extension for time-series data
+  timescale:
+    image: timescale/timescaledb:latest-pg16
+    container_name: kairos-timescale
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: kairos
+      POSTGRES_PASSWORD: kairos_password
+      POSTGRES_DB: kairos_trading
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./db/init_timescale.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - kairos-network
+
+  # KAIRÓS Core - Trading Engine (Rust)
+  kairos-core:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.core
+    container_name: kairos-core
+    depends_on:
+      - dragonfly
+      - timescale
+    environment:
+      RUST_LOG: info
+      DRAGONFLY_URL: redis://dragonfly:6379
+      TIMESCALE_URL: postgresql://kairos:kairos_password@timescale:5432/kairos_trading
+      GRPC_PORT: 50051
+    ports:
+      - "50051:50051"
+    networks:
+      - kairos-network
+
+  # KAIRÓS API - GraphQL/gRPC Gateway (Rust)
+  kairos-api:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.api
+    container_name: kairos-api
+    depends_on:
+      - kairos-core
+      - dragonfly
+    environment:
+      RUST_LOG: info
+      DRAGONFLY_URL: redis://dragonfly:6379
+      CORE_GRPC_URL: http://kairos-core:50051
+    ports:
+      - "4000:4000"
+    networks:
+      - kairos-network
+
+  # KAIRÓS Web - Angular Dashboard
+  kairos-web:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.web
+    container_name: kairos-web
+    depends_on:
+      - kairos-api
+    ports:
+      - "4200:80"
+    networks:
+      - kairos-network
+
+volumes:
+  dragonfly_data:
+  timescale_data:
+
+networks:
+  kairos-network:
+    driver: bridge

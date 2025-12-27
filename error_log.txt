@@ -1,0 +1,307 @@
+warning: use of deprecated method `tonic_build::Builder::compile`: renamed to `compile_protos()`
+ --> libs\kairos-proto\build.rs:5:10
+  |
+5 |         .compile(&["proto/trading_engine.proto"], &["proto"])?;
+  |          ^^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+warning: `kairos-proto` (build script) generated 1 warning
+   Compiling kairos-core v0.1.0 (C:\Users\david\Documents\Trading-algorithms\apps\kairos-core)
+warning: unused import: `error`
+ --> apps\kairos-core\src\main.rs:1:21
+  |
+1 | use tracing::{info, error};
+  |                     ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `kairos_domain::*`
+ --> apps\kairos-core\src\domain\entities.rs:2:9
+  |
+2 | pub use kairos_domain::*;
+  |         ^^^^^^^^^^^^^^^^
+
+warning: unused import: `arbitrage::*`
+ --> apps\kairos-core\src\domain\strategies\mod.rs:6:9
+  |
+6 | pub use arbitrage::*;
+  |         ^^^^^^^^^^^^
+
+warning: unused import: `triangulation::*`
+ --> apps\kairos-core\src\domain\strategies\mod.rs:7:9
+  |
+7 | pub use triangulation::*;
+  |         ^^^^^^^^^^^^^^^^
+
+error: this function depends on never type fallback being `()`
+  --> apps\kairos-core\src\adapters\outbound\persistence\dragonfly.rs:15:5
+   |
+15 |     pub async fn publish_market_data(&self, channel: &str, data: &str) -> anyhow::Result<()> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in Rust 2024 and in a future release in all editions!
+   = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/never-type-fallback.html>
+   = help: specify the types explicitly
+note: in edition 2024, the requirement `!: FromRedisValue` will fail
+  --> apps\kairos-core\src\adapters\outbound\persistence\dragonfly.rs:17:14
+   |
+17 |         conn.publish(channel, data).await?;
+   |              ^^^^^^^
+   = note: `#[deny(dependency_on_unit_never_type_fallback)]` (part of `#[deny(rust_2024_compatibility)]`) on by default
+help: use `()` annotations to avoid fallback changes
+   |
+17 |         conn.publish::<_, _, ()>(channel, data).await?;
+   |                     ++++++++++++
+
+error: this function depends on never type fallback being `()`
+  --> apps\kairos-core\src\adapters\outbound\persistence\dragonfly.rs:21:5
+   |
+21 |     pub async fn set_key(&self, key: &str, value: &str) -> anyhow::Result<()> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in Rust 2024 and in a future release in all editions!
+   = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/never-type-fallback.html>
+   = help: specify the types explicitly
+note: in edition 2024, the requirement `!: FromRedisValue` will fail
+  --> apps\kairos-core\src\adapters\outbound\persistence\dragonfly.rs:23:14
+   |
+23 |         conn.set(key, value).await?;
+   |              ^^^
+help: use `()` annotations to avoid fallback changes
+   |
+23 |         conn.set::<_, _, ()>(key, value).await?;
+   |                 ++++++++++++
+
+warning: unused variable: `tick`
+  --> apps\kairos-core\src\domain\strategies\triangulation.rs:18:36
+   |
+18 |     pub fn update_graph(&mut self, tick: &MarketTick) {
+   |                                    ^^^^ help: if this is intentional, prefix it with an underscore: `_tick`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `RiskEngine` is never constructed
+ --> apps\kairos-core\src\domain\risk\mod.rs:7:12
+  |
+7 | pub struct RiskEngine {
+  |            ^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated items `new`, `validate_order`, `update_balance`, `get_balance`, `add_risk`, and `reset_daily_risk` are never used
+  --> apps\kairos-core\src\domain\risk\mod.rs:15:12
+   |
+14 | impl RiskEngine {
+   | --------------- associated items in this implementation
+15 |     pub fn new(initial_balance: f64, max_daily_risk: f64) -> Self {
+   |            ^^^
+...
+24 |     pub fn validate_order(&self, order: &InternalOrder) -> DomainResult<()> {
+   |            ^^^^^^^^^^^^^^
+...
+49 |     pub fn update_balance(&self, amount: f64) {
+   |            ^^^^^^^^^^^^^^
+...
+60 |     pub fn get_balance(&self) -> f64 {
+   |            ^^^^^^^^^^^
+...
+65 |     pub fn add_risk(&self, risk: f64) {
+   |            ^^^^^^^^
+...
+72 |     pub fn reset_daily_risk(&self) {
+   |            ^^^^^^^^^^^^^^^^
+
+warning: struct `ArbitrageStrategy` is never constructed
+ --> apps\kairos-core\src\domain\strategies\arbitrage.rs:4:12
+  |
+4 | pub struct ArbitrageStrategy {
+  |            ^^^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `analyze` are never used
+  --> apps\kairos-core\src\domain\strategies\arbitrage.rs:9:12
+   |
+ 8 | impl ArbitrageStrategy {
+   | ---------------------- associated items in this implementation
+ 9 |     pub fn new(min_profit_threshold: f64) -> Self {
+   |            ^^^
+...
+16 |     pub fn analyze(&self, _ticks: &[MarketTick]) -> Option<InternalOrder> {
+   |            ^^^^^^^
+
+warning: struct `TriangulationStrategy` is never constructed
+ --> apps\kairos-core\src\domain\strategies\triangulation.rs:5:12
+  |
+5 | pub struct TriangulationStrategy {
+  |            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `new`, `update_graph`, and `find_opportunities` are never used
+  --> apps\kairos-core\src\domain\strategies\triangulation.rs:11:12
+   |
+10 | impl TriangulationStrategy {
+   | -------------------------- associated items in this implementation
+11 |     pub fn new() -> Self {
+   |            ^^^
+...
+18 |     pub fn update_graph(&mut self, tick: &MarketTick) {
+   |            ^^^^^^^^^^^^
+...
+24 |     pub fn find_opportunities(&self) -> Vec<InternalOrder> {
+   |            ^^^^^^^^^^^^^^^^^^
+
+warning: struct `TradingEngine` is never constructed
+ --> apps\kairos-core\src\application\engine.rs:6:12
+  |
+6 | pub struct TradingEngine {
+  |            ^^^^^^^^^^^^^
+
+warning: associated items `new`, `subscribe_market_data`, `get_order_sender`, and `run` are never used
+  --> apps\kairos-core\src\application\engine.rs:16:12
+   |
+15 | impl TradingEngine {
+   | ------------------ associated items in this implementation
+16 |     pub fn new() -> Self {
+   |            ^^^
+...
+28 |     pub fn subscribe_market_data(&self) -> broadcast::Receiver<MarketTick> {
+   |            ^^^^^^^^^^^^^^^^^^^^^
+...
+33 |     pub fn get_order_sender(&self) -> mpsc::Sender<InternalOrder> {
+   |            ^^^^^^^^^^^^^^^^
+...
+38 |     pub async fn run(mut self) -> anyhow::Result<()> {
+   |                  ^^^
+
+warning: struct `AppState` is never constructed
+ --> apps\kairos-core\src\application\state.rs:7:12
+  |
+7 | pub struct AppState {
+  |            ^^^^^^^^
+
+warning: associated function `new` is never used
+  --> apps\kairos-core\src\application\state.rs:15:12
+   |
+14 | impl AppState {
+   | ------------- associated function in this implementation
+15 |     pub fn new(initial_balance: f64, max_daily_risk: f64) -> Self {
+   |            ^^^
+
+warning: struct `BinanceFeedHandler` is never constructed
+ --> apps\kairos-core\src\adapters\inbound\feed_handler\binance.rs:6:12
+  |
+6 | pub struct BinanceFeedHandler {
+  |            ^^^^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `start` are never used
+  --> apps\kairos-core\src\adapters\inbound\feed_handler\binance.rs:11:12
+   |
+10 | impl BinanceFeedHandler {
+   | ----------------------- associated items in this implementation
+11 |     pub fn new(market_data_tx: broadcast::Sender<MarketTick>) -> Self {
+   |            ^^^
+...
+15 |     pub async fn start(&self) -> anyhow::Result<()> {
+   |                  ^^^^^
+
+warning: struct `OkxFeedHandler` is never constructed
+ --> apps\kairos-core\src\adapters\inbound\feed_handler\okx.rs:6:12
+  |
+6 | pub struct OkxFeedHandler {
+  |            ^^^^^^^^^^^^^^
+
+warning: associated items `new` and `start` are never used
+  --> apps\kairos-core\src\adapters\inbound\feed_handler\okx.rs:11:12
+   |
+10 | impl OkxFeedHandler {
+   | ------------------- associated items in this implementation
+11 |     pub fn new(market_data_tx: broadcast::Sender<MarketTick>) -> Self {
+   |            ^^^
+...
+15 |     pub async fn start(&self) -> anyhow::Result<()> {
+   |                  ^^^^^
+
+warning: struct `GrpcServer` is never constructed
+ --> apps\kairos-core\src\adapters\inbound\grpc_server\mod.rs:7:12
+  |
+7 | pub struct GrpcServer;
+  |            ^^^^^^^^^^
+
+warning: function `start_grpc_server` is never used
+  --> apps\kairos-core\src\adapters\inbound\grpc_server\mod.rs:60:14
+   |
+60 | pub async fn start_grpc_server(addr: String) -> anyhow::Result<()> {
+   |              ^^^^^^^^^^^^^^^^^
+
+warning: struct `BinanceExecutor` is never constructed
+ --> apps\kairos-core\src\adapters\outbound\execution\binance.rs:3:12
+  |
+3 | pub struct BinanceExecutor {
+  |            ^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `place_order` are never used
+  --> apps\kairos-core\src\adapters\outbound\execution\binance.rs:9:12
+   |
+ 8 | impl BinanceExecutor {
+   | -------------------- associated items in this implementation
+ 9 |     pub fn new(api_key: String, api_secret: String) -> Self {
+   |            ^^^
+...
+13 |     pub async fn place_order(&self, _symbol: &str, _side: &str, _quantity: f64) -> anyhow::Result<String> {
+   |                  ^^^^^^^^^^^
+
+warning: struct `OkxExecutor` is never constructed
+ --> apps\kairos-core\src\adapters\outbound\execution\okx.rs:3:12
+  |
+3 | pub struct OkxExecutor {
+  |            ^^^^^^^^^^^
+
+warning: associated items `new` and `place_order` are never used
+  --> apps\kairos-core\src\adapters\outbound\execution\okx.rs:10:12
+   |
+ 9 | impl OkxExecutor {
+   | ---------------- associated items in this implementation
+10 |     pub fn new(api_key: String, api_secret: String, passphrase: String) -> Self {
+   |            ^^^
+...
+14 |     pub async fn place_order(&self, _symbol: &str, _side: &str, _quantity: f64) -> anyhow::Result<String> {
+   |                  ^^^^^^^^^^^
+
+warning: struct `DragonflyClient` is never constructed
+ --> apps\kairos-core\src\adapters\outbound\persistence\dragonfly.rs:5:12
+  |
+5 | pub struct DragonflyClient {
+  |            ^^^^^^^^^^^^^^^
+
+warning: associated items `new`, `publish_market_data`, and `set_key` are never used
+  --> apps\kairos-core\src\adapters\outbound\persistence\dragonfly.rs:10:18
+   |
+ 9 | impl DragonflyClient {
+   | -------------------- associated items in this implementation
+10 |     pub async fn new(url: &str) -> anyhow::Result<Self> {
+   |                  ^^^
+...
+15 |     pub async fn publish_market_data(&self, channel: &str, data: &str) -> anyhow::Result<()> {
+   |                  ^^^^^^^^^^^^^^^^^^^
+...
+21 |     pub async fn set_key(&self, key: &str, value: &str) -> anyhow::Result<()> {
+   |                  ^^^^^^^
+
+warning: struct `TimescaleClient` is never constructed
+ --> apps\kairos-core\src\adapters\outbound\persistence\timescale.rs:5:12
+  |
+5 | pub struct TimescaleClient {
+  |            ^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `save_market_tick` are never used
+  --> apps\kairos-core\src\adapters\outbound\persistence\timescale.rs:10:18
+   |
+ 9 | impl TimescaleClient {
+   | -------------------- associated items in this implementation
+10 |     pub async fn new(database_url: &str) -> anyhow::Result<Self> {
+   |                  ^^^
+...
+19 |     pub async fn save_market_tick(&self, _symbol: &str, _price: f64, _volume: f64) -> anyhow::Result<()> {
+   |                  ^^^^^^^^^^^^^^^^
+
+warning: `kairos-core` (bin "kairos-core") generated 29 warnings
+error: could not compile `kairos-core` (bin "kairos-core") due to 4 previous errors; 29 warnings emitted

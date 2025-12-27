@@ -1,0 +1,38 @@
+# Multi-stage build for kairos-core
+
+# Build stage
+FROM rustlang/rust:nightly as builder
+
+# Install protobuf compiler
+RUN apt-get update && \
+    apt-get install -y protobuf-compiler && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy workspace files
+COPY Cargo.toml ./
+COPY libs ./libs
+COPY apps ./apps
+
+# Build the application in release mode
+RUN cargo build --release --bin kairos-core
+
+# Runtime stage
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y ca-certificates libssl3 && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the binary from builder
+COPY --from=builder /app/target/release/kairos-core .
+
+# Expose gRPC port
+EXPOSE 50051
+
+# Run the binary
+CMD ["./kairos-core"]
