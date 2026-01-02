@@ -3,7 +3,7 @@ resolver = "2"
 
 members = [
     "apps/kairos-core",
-    "apps/kairos-api",
+    # kairos-api is now Java/Maven (not Rust)
     "libs/kairos-domain",
     "libs/kairos-proto",
 ]

@@ -1,59 +1,141 @@
-# KairosWeb
+# KAIRÓS Dashboard - Angular Application
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.4.
+Frontend dashboard for the KAIRÓS trading system.
 
-## Development server
+## Technology Stack
 
-To start a local development server, run:
+- **Angular 21**
+- **TypeScript 5.9**
+- **RxJS 7.8**
+- **WebSocket** for real-time data streaming
 
-```bash
-ng serve
+## Architecture
+
+The dashboard communicates with the `kairos-api` (Java Spring Boot) via:
+
+1. **REST API** - HTTP calls for queries and commands
+2. **WebSocket** - Real-time market data streaming
+
+### Services
+
+Located in `src/app/services/`:
+
+#### MarketDataService
+- `getRecentTicks(symbol, limit)` - Get recent market ticks
+- `getHistoricalTicks(symbol, start, end)` - Historical ticks
+- `getOhlcvCandles(symbol, start?, end?, limit)` - OHLCV candles
+- `getLatestPrice(symbol)` - Latest price from DragonflyDB
+
+#### TradingService
+- `placeOrder(request)` - Place a new order
+- `cancelOrder(orderId)` - Cancel an order
+- `getOrderStatus(orderId)` - Get order status
+- `getOrderHistory(limit)` - Order history
+- `getOrdersByTimeRange(start, end)` - Orders by date range
+- `getOrdersByStatus(status, limit)` - Orders by status
+
+#### BalanceService
+- `getBalance(currency)` - Get balance for a currency
+
+#### WebSocketService
+- `connect()` - Connect to market data stream
+- `messages$` - Observable stream of market data
+- `disconnect()` - Disconnect from stream
+
+## Environment Configuration
+
+### Development (`src/environments/environment.ts`)
+```typescript
+{
+  apiUrl: 'http://localhost:4000',
+  wsUrl: 'ws://localhost:4000'
+}
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+### Production (`src/environments/environment.prod.ts`)
+```typescript
+{
+  apiUrl: 'http://kairos-api:4000',
+  wsUrl: 'ws://kairos-api:4000'
+}
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Development
 
 ```bash
-ng generate --help
+# Install dependencies
+npm install
+
+# Run development server
+npm start
+
+# Navigate to http://localhost:4200
 ```
 
-## Building
-
-To build the project run:
+## Build
 
 ```bash
-ng build
+# Production build
+npm run build
+
+# Output: dist/kairos-web
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Docker
 
-## Running unit tests
+See `Dockerfile` in this directory and `infrastructure/docker-compose.yml` for container deployment.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Migration from GraphQL
 
-```bash
-ng test
+Previous implementation (planned but not built) would have used GraphQL. This implementation uses:
+
+- **REST API** for queries and mutations
+- **WebSocket** for real-time subscriptions
+
+This provides better compatibility with standard HTTP tooling and clearer API contracts.
+
+## Example Usage
+
+### Component Example
+
+```typescript
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MarketDataService } from './services/market-data.service';
+import { WebSocketService } from './services/websocket.service';
+import { TradingService } from './services/trading.service';
+
+export class DashboardComponent implements OnInit, OnDestroy {
+  constructor(
+    private marketData: MarketDataService,
+    private ws: WebSocketService,
+    private trading: TradingService
+  ) {}
+
+  ngOnInit() {
+    // Get latest price
+    this.marketData.getLatestPrice('BTC-USDT').subscribe(price => {
+      console.log('Latest BTC price:', price.price);
+    });
+
+    // Connect to WebSocket for real-time updates
+    this.ws.connect();
+    this.ws.messages$.subscribe(message => {
+      console.log('Real-time update:', message);
+    });
+
+    // Place an order
+    this.trading.placeOrder({
+      symbol: 'BTC-USDT',
+      side: 'BUY',
+      orderType: 'MARKET',
+      quantity: 0.01
+    }).subscribe(response => {
+      console.log('Order placed:', response);
+    });
+  }
+
+  ngOnDestroy() {
+    this.ws.disconnect();
+  }
+}
 ```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

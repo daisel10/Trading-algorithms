@@ -7,7 +7,7 @@ services:
     container_name: kairos-dragonfly
     ports:
       - "6379:6379"
-    command: 
+    command:
       - "--maxmemory=2gb"
       - "--save_schedule=*:*"
     volumes:
@@ -50,7 +50,7 @@ services:
     networks:
       - kairos-network
 
-  # KAIRÓS API - GraphQL/gRPC Gateway (Rust)
+  # KAIRÓS API - Spring Boot WebFlux Gateway (Java)
   kairos-api:
     build:
       context: ..
@@ -59,10 +59,24 @@ services:
     depends_on:
       - kairos-core
       - dragonfly
+      - timescale
     environment:
-      RUST_LOG: info
-      DRAGONFLY_URL: redis://dragonfly:6379
-      CORE_GRPC_URL: http://kairos-core:50051
+      # Database Configuration
+      TIMESCALE_HOST: timescale
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: kairos_trading
+      TIMESCALE_USER: kairos
+      TIMESCALE_PASSWORD: kairos_password
+      # DragonflyDB Configuration
+      DRAGONFLY_HOST: dragonfly
+      DRAGONFLY_PORT: 6379
+      # gRPC Configuration
+      CORE_GRPC_HOST: kairos-core
+      CORE_GRPC_PORT: 50051
+      # Server Configuration
+      SERVER_PORT: 4000
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://kairos-web:80
     ports:
       - "4000:4000"
     networks:
@@ -84,6 +98,7 @@ services:
 volumes:
   dragonfly_data:
   timescale_data:
+
 
 networks:
   kairos-network:

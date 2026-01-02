@@ -2,6 +2,7 @@
 
 ![Status](https://img.shields.io/badge/Status-Pre--Alpha-critical)
 ![Core](https://img.shields.io/badge/Core-Rust-orange)
+![API](https://img.shields.io/badge/API-Java%20Spring%20Boot-green)
 ![Dashboard](https://img.shields.io/badge/Dashboard-Angular-red)
 ![Architecture](https://img.shields.io/badge/Architecture-Monorepo-blue)
 ![Infra](https://img.shields.io/badge/Infra-DragonflyDB%20%7C%20Timescale-green)
@@ -10,21 +11,19 @@
 
 ## 📖 Visión del Proyecto
 
-Kairós es un motor de trading de **baja latencia** y arquitectura híbrida. Diseñado bajo principios de **DDD (Domain-Driven Design)**, **Arquitectura Hexagonal** y **Hexagonal**, su objetivo es desacoplar la inteligencia (Estrategias/IA) de la ejecución crítica (Riesgo/Conectividad/extracion de datos / persistencia).
+Kairós es un motor de trading de **baja latencia** y arquitectura híbrida. Diseñado bajo principios de **DDD (Domain-Driven Design)** y **Arquitectura Hexagonal**, su objetivo es desacoplar la inteligencia (Estrategias/IA) de la ejecución crítica (Riesgo/Conectividad/extracción de datos/persistencia).
 
-Actualmente, el proyecto opera como un **Monorepo**, centralizando el desarrollo del Núcleo (Rust), la Infraestructura y el Dashboard de control.
+Actualmente, el proyecto opera como un **Monorepo**, centralizando el desarrollo del Núcleo (Rust), la API (Java Spring Boot), y el Dashboard (Angular).
 
 ---
-## Broker actuales
+## Brokers Soportados
 - OKX
 - Binance
 
-## 📚 Actual desarrollo
-- creacion del monolito en rust
-
-- creacion del api 
-
-- creacion de dashboard
+## 📚 Estado Actual del Desarrollo
+- ✅ **Monolito en Rust** (kairos-core) - Motor de trading con gRPC
+- ✅ **API en Java Spring Boot** (kairos-api) - REST + WebSocket gateway
+- 🚧 **Dashboard en Angular** (kairos-web) - Interfaz web en desarrollo
 
 
 
@@ -122,8 +121,16 @@ rpc PlaceOrder (OrderRequest) returns (OrderResponse);
 - El monolito recibe el mensaje, lo convierte en OrdenInterna y lo mete al canal MPSC (el mismo que usan las estrategias rápidas) para que pase por el Motor de Riesgo.
 
 #### Microservicios
-- API en rust que genere los endpoints un dashboard, usando GraphQL y gRPC para el monolito
--  Dashboard en Angular que se conecte a la API de rust usando GraphQL 
+- **API en Java (Spring Boot WebFlux)**: Genera endpoints REST y WebSocket para el dashboard. Se conecta a PostgreSQL/TimescaleDB y DragonflyDB. Utiliza gRPC para comunicarse con el monolito de Rust.
+  - **Tecnologías**: Spring Boot 3.2, WebFlux (reactivo), R2DBC, Redis Reactive, gRPC Client
+  - **Endpoints REST**: Market data, órdenes, balances
+  - **WebSocket**: Streaming en tiempo real desde DragonflyDB Pub/Sub
+  - **Ubicación**: `apps/kairos-api/` (Java/Maven)
+  
+- **Dashboard en Angular**: Interfaz web que se conecta a la API de Java usando REST API y WebSocket para datos en tiempo real
+  - **Tecnolog ías**: Angular 21, TypeScript, RxJS
+  - **Comunicación**: HTTP REST + WebSocket (sin GraphQL)
+  - **Ubicación**: `apps/kairos-web/` (Angular/NPM)
 
 ---
 
@@ -134,7 +141,7 @@ kairos-monorepo/
 ├── .github/                   # CI/CD Workflows
 ├── apps/                      # Aplicaciones ejecutables
 │   ├── kairos-core/           # [EL MONOLITO] Motor de Trading (Rust)
-│   ├── kairos-api/            # [SATÉLITE] API Gateway (Rust/GraphQL/gRPC)
+apps/kairos-api/            # [SATÉLITE] API Gateway (Java/Spring Boot/WebFlux/gRPC)
 │   └── kairos-web/            # [SATÉLITE] Dashboard (Angular)
 ├── libs/                      # Librerías compartidas (Rust Crates)
 │   ├── kairos-domain/         # Entidades comunes (Order, MarketTick, Enums)
@@ -169,22 +176,41 @@ apps/kairos-core/
         └── outbound/          # Lo que sale del sistema
             ├── persistence/   # [THE LOGGER] Conexión a DragonflyDB/Timescale (SQLx)
             └── execution/     # [THE SNIPER] HTTP/WS para enviar órdenes al Broker
+
 2. Detalle del API Gateway: apps/kairos-api/
 Este servicio actúa como intermediario. No hace trading, solo lee datos y pasa órdenes.
 
+**Implementación actual: Java Spring Boot con WebFlux (Arquitectura Reactiva)**
 
-
+```
 apps/kairos-api/
-├── Cargo.toml
+├── pom.xml                    # Maven configuration
+├── README.md                  # API documentation
 └── src/
-    ├── main.rs
-    ├── graphql/               # Esquemas y Resolvers (Async-graphql o Juniper)
-    │   ├── schema.rs
-    │   ├── query.rs           # Consultas de lectura (hacia DragonflyDB)
-    │   └── mutation.rs        # Acciones (llaman al cliente gRPC)
-    └── clients/
-        ├── db_reader.rs       # Cliente Redis/Dragonfly para leer datos "calientes"
-        └── core_grpc.rs       # Cliente gRPC para hablar con 'kairos-core'
+    ├── main/
+    │   ├── java/com/kairos/   # Java source code (simplified package structure)
+    │   │   ├── KairosApiApplication.java
+    │   │   ├── config/        # Spring configurations (Redis, WebSocket, CORS)
+    │   │   ├── model/         # Entities and DTOs
+    │   │   ├── repository/    # R2DBC repositories (reactive)
+    │   │   ├── service/       # Business logic layer
+    │   │   ├── grpc/          # gRPC client for kairos-core
+    │   │   ├── controller/    # REST endpoints
+    │   │   └── websocket/     # WebSocket handlers
+    │   ├── resources/
+    │   │   ├── application.yml
+    │   │   └── proto/
+    │   │       └── trading_engine.proto  # Copied from libs/
+    └── test/                  # Integration tests
+```
+
+**Endpoints REST:**
+- `GET /api/market-data/*` - Datos de mercado (TimescaleDB + DragonflyDB)
+- `POST /api/orders` - Crear orden (vía gRPC a kairos-core)
+- `GET /api/balance/*` - Consultas de balance
+- `ws://*/ws/market-data` - WebSocket para streaming en tiempo real
+
+        
 3. Detalle de Librerías Compartidas: libs/
 Para no duplicar código entre el Core y la API.
 

@@ -7,8 +7,10 @@ Esta guía te mostrará cómo ejecutar los componentes del sistema KAIRÓS, tant
 ## 📋 Prerequisitos
 
 ### Para desarrollo local:
-- **Rust** (nightly): `rustup install nightly && rustup default nightly`
-- **Node.js** 18+ y npm
+- **Rust** (nightly): `rustup install nightly && rustup default nightly` (para kairos-core)
+- **Java 21+**: Para kairos-api (Spring Boot)
+- **Maven 3.9+**: Para compilar kairos-api
+- **Node.js** 18+ y npm: Para kairos-web (Angular)
 - **Protobuf Compiler**: `choco install protoc` (Windows) o `apt install protobuf-compiler` (Linux)
 - **PostgreSQL** con extensión TimescaleDB (opcional para desarrollo local)
 - **Redis** o DragonflyDB (opcional para desarrollo local)
@@ -31,7 +33,7 @@ Este comando levantará:
 - 🗄️ **DragonflyDB** (puerto 6379) - Base de datos en memoria
 - 🐘 **TimescaleDB** (puerto 5432) - Base de datos de series temporales
 - ⚡ **kairos-core** (puerto 50051) - Motor de trading (gRPC)
-- 🌐 **kairos-api** (puerto 4000) - API GraphQL
+- 🌐 **kairos-api** (puerto 4000) - API REST + WebSocket (Java Spring Boot)
 - 🎨 **kairos-web** (puerto 4200) - Dashboard Angular
 
 ### Detener todos los servicios
@@ -120,24 +122,41 @@ cargo +nightly run --release --bin kairos-core
 
 **Puerto:** 50051 (gRPC)
 
-### 3. KAIRÓS API (GraphQL Gateway)
+### 3. KAIRÓS API (Spring Boot WebFlux Gateway)
 
 ```bash
+# Navegar al directorio de la API
+cd apps/kairos-api
+
 # Configurar variables de entorno
-export RUST_LOG=info
-export DRAGONFLY_URL=redis://localhost:6379
-export CORE_GRPC_URL=http://localhost:50051
+export TIMESCALE_HOST=localhost
+export TIMESCALE_PORT=5432
+export TIMESCALE_DB=kairos_trading
+export TIMESCALE_USER=kairos
+export TIMESCALE_PASSWORD=kairos_password
+export DRAGONFLY_HOST=localhost
+export DRAGONFLY_PORT=6379
+export CORE_GRPC_HOST=localhost
+export CORE_GRPC_PORT=50051
+export SERVER_PORT=4000
 
-# Compilar y ejecutar
-cargo +nightly build --release --bin kairos-api
-./target/release/kairos-api
+# Compilar con Maven
+mvn clean package
 
-# O directamente con cargo run
-cargo +nightly run --release --bin kairos-api
+# Ejecutar el JAR
+java -jar target/kairos-api-0.1.0.jar
+
+# O directamente con Maven
+mvn spring-boot:run
 ```
 
-**Puerto:** 4000 (GraphQL)  
-**Endpoint:** http://localhost:4000/graphql
+**Puerto:** 4000 (REST API + WebSocket)  
+**Endpoints REST:**
+- `GET /api/market-data/*` - Datos de mercado
+- `POST /api/orders` - Crear orden
+- `GET /api/balance/*` - Consultas de balance
+
+**WebSocket:** `ws://localhost:4000/ws/market-data` - Streaming en tiempo real
 
 ### 4. KAIRÓS Web (Dashboard Angular)
 
@@ -168,9 +187,8 @@ ng serve
 # Compilar todo el workspace
 cargo build --release
 
-# Compilar solo un binario específico
+# Compilar solo el monolito
 cargo build --release --bin kairos-core
-cargo build --release --bin kairos-api
 
 # Ejecutar tests
 cargo test
@@ -183,6 +201,30 @@ cargo clippy
 
 # Limpiar artefactos de compilación
 cargo clean
+```
+
+### Maven / Java (kairos-api)
+
+```bash
+cd apps/kairos-api
+
+# Compilar y empaquetar
+mvn clean package
+
+# Ejecutar con Spring Boot
+mvn spring-boot:run
+
+# Ejecutar tests
+mvn test
+
+# Ejecutar tests de integración
+mvn verify
+
+# Limpiar build
+mvn clean
+
+# Ver dependencias
+mvn dependency:tree
 ```
 
 ### Docker
@@ -232,7 +274,8 @@ Una vez que todos los servicios estén corriendo:
 | Servicio | URL | Descripción |
 |----------|-----|-------------|
 | **Web Dashboard** | http://localhost:4200 | Interfaz de usuario principal |
-| **GraphQL API** | http://localhost:4000/graphql | API GraphQL (Playground) |
+| **REST API** | http://localhost:4000/api/* | API REST + WebSocket |
+| **Market Data WS** | ws://localhost:4000/ws/market-data | WebSocket streaming en tiempo real |
 | **gRPC Core** | localhost:50051 | Motor de trading (gRPC) |
 | **DragonflyDB** | localhost:6379 | Redis-compatible (CLI: `redis-cli`) |
 | **TimescaleDB** | localhost:5432 | PostgreSQL (CLI: `psql -U kairos -d kairos_trading`) |
@@ -292,11 +335,11 @@ docker compose -f infrastructure/docker-compose.yml build --progress=plain --no-
 │   kairos-web    │  (Angular - Puerto 4200)
 │   Dashboard     │
 └────────┬────────┘
-         │ HTTP
+         │ HTTP REST + WebSocket
          ▼
 ┌─────────────────┐
-│   kairos-api    │  (Rust GraphQL - Puerto 4000)
-│   Gateway       │
+│   kairos-api    │  (Java Spring Boot WebFlux - Puerto 4000)
+│   API Gateway   │
 └────────┬────────┘
          │ gRPC
          ▼
@@ -318,11 +361,12 @@ docker compose -f infrastructure/docker-compose.yml build --progress=plain --no-
 
 ## 📝 Notas Adicionales
 
-- **Modo desarrollo**: Los cambios en el código Rust requieren recompilación
-- **Modo producción**: Usa `--release` para compilaciones optimizadas
-- **Hot reload**: Solo disponible en el frontend Angular (`npm run start`)
+- **Rust (kairos-core)**: Los cambios requieren recompilación con `cargo build --release`
+- **Java (kairos-api)**: Spring Boot DevTools permite hot reload en desarrollo
+- **Angular (kairos-web)**: Hot reload automático con `npm run start`
 - **Datos persistentes**: Los volúmenes Docker mantienen los datos entre reinicios
-- **Primer inicio**: La compilación puede tomar varios minutos la primera vez
+- **Primer inicio**: La compilación puede tomar varios minutos (especialmente Rust +  Maven)
+- **Protocolo gRPC**: Definido en `libs/kairos-proto/proto/trading_engine.proto`
 
 ---
 

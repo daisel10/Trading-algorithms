@@ -1,38 +1,32 @@
-# Multi-stage build for kairos-api
+# Multi-stage Dockerfile for kairos-api (Java Spring Boot)
 
-# Build stage
-FROM rustlang/rust:nightly as builder
-
-# Install protobuf compiler
-RUN apt-get update && \
-    apt-get install -y protobuf-compiler && \
-    rm -rf /var/lib/apt/lists/*
-
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy workspace files
-COPY Cargo.toml ./
-COPY libs ./libs
-COPY apps ./apps
+# Copy pom.xml and download dependencies (cache layer)
+COPY apps/kairos-api/pom.xml .
+RUN mvn dependency:go-offline -B
 
-# Build the application in release mode
-RUN cargo build --release --bin kairos-api
+# Copy source code and proto files
+COPY apps/kairos-api/src ./src
+COPY libs/kairos-proto/proto/trading_engine.proto ./src/main/proto/
 
-# Runtime stage
-FROM debian:bookworm-slim
+# Build the application
+RUN mvn clean package -DskipTests
 
-# Install runtime dependencies
-RUN apt-get update && \
-    apt-get install -y ca-certificates libssl3 && \
-    rm -rf /var/lib/apt/lists/*
-
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copy the binary from builder
-COPY --from=builder /app/target/release/kairos-api .
+# Copy JAR from build stage
+COPY --from=build /app/target/kairos-api-*.jar app.jar
 
-# Expose GraphQL port
+# Expose port
 EXPOSE 4000
 
-# Run the binary
-CMD ["./kairos-api"]
+# Set JVM options for containers
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

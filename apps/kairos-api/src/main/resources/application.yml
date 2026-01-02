@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: kairos-api
+  
+  # R2DBC PostgreSQL/TimescaleDB Configuration
+  r2dbc:
+    url: r2dbc:postgresql://${TIMESCALE_HOST:localhost}:${TIMESCALE_PORT:5432}/${TIMESCALE_DB:kairos_trading}
+    username: ${TIMESCALE_USER:kairos}
+    password: ${TIMESCALE_PASSWORD:kairos_password}
+    pool:
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 30m
+  
+  # Redis/DragonflyDB Configuration
+  data:
+    redis:
+      host: ${DRAGONFLY_HOST:localhost}
+      port: ${DRAGONFLY_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+# gRPC Client Configuration
+grpc:
+  client:
+    kairos-core:
+      address: static://${CORE_GRPC_HOST:localhost}:${CORE_GRPC_PORT:50051}
+      negotiationType: plaintext
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      keepAliveTime: 30s
+      keepAliveTimeout: 5s
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:4000}
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.kairos.api: DEBUG
+    io.r2dbc: DEBUG
+    org.springframework.data.r2dbc: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Application specific settings
+kairos:
+  api:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+    websocket:
+      market-data-channel: market_data
+      order-updates-channel: order_updates
