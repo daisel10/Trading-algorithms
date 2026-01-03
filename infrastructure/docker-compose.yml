@@ -8,8 +8,9 @@ services:
     ports:
       - "6379:6379"
     command:
-      - "--maxmemory=2gb"
-      - "--save_schedule=*:*"
+      - "--maxmemory=3gb"
+      - "--snapshot_cron=* * * * *"
+      - "--proactor_threads=3"
     volumes:
       - dragonfly_data:/data
     networks:

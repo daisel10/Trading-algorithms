@@ -20,12 +20,12 @@ import java.time.Instant;
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
-    
+
     private final TradingService tradingService;
-    
+
     /**
      * POST /api/orders
-     * Place a new order (calls gRPC to kairos-core)
+     * Place a new order (stores to database)
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -33,7 +33,7 @@ public class OrderController {
         log.info("POST /api/orders - request: {}", request);
         return tradingService.placeOrder(request);
     }
-    
+
     /**
      * DELETE /api/orders/{orderId}
      * Cancel an existing order
@@ -43,17 +43,17 @@ public class OrderController {
         log.info("DELETE /api/orders/{}", orderId);
         return tradingService.cancelOrder(orderId);
     }
-    
+
     /**
-     * GET /api/orders/{orderId}
-     * Get order status via gRPC
+     * GET /api/orders/{orderId}/status
+     * Get order status from database
      */
     @GetMapping("/{orderId}/status")
     public Mono<OrderResponse> getOrderStatus(@PathVariable String orderId) {
         log.info("GET /api/orders/{}/status", orderId);
         return tradingService.getOrderStatus(orderId);
     }
-    
+
     /**
      * GET /api/orders/history
      * Get order history from TimescaleDB
@@ -64,7 +64,7 @@ public class OrderController {
         log.info("GET /api/orders/history - limit: {}", limit);
         return tradingService.getOrderHistory(limit);
     }
-    
+
     /**
      * GET /api/orders/history/range
      * Get orders within a time range
@@ -76,7 +76,7 @@ public class OrderController {
         log.info("GET /api/orders/history/range - start: {}, end: {}", start, end);
         return tradingService.getOrdersByTimeRange(start, end);
     }
-    
+
     /**
      * GET /api/orders/status/{status}
      * Get orders by status

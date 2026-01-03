@@ -5,32 +5,33 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import trading_engine.BalanceResponse;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/balance")
 @RequiredArgsConstructor
 public class BalanceController {
-    
+
     private final TradingService tradingService;
-    
+
     /**
-     * GET /api/balance/{currency}
      * Get balance for a specific currency
+     * GET /api/balance/{currency}
      */
     @GetMapping("/{currency}")
-    public Mono<BalanceDto> getBalance(@PathVariable String currency) {
-        log.info("GET /api/balance/{}", currency);
-        return tradingService.getBalance(currency.toUpperCase())
-            .map(grpcResponse -> new BalanceDto(
-                currency.toUpperCase(),
-                grpcResponse.getAvailable(),
-                grpcResponse.getLocked(),
-                grpcResponse.getTotal()
-            ));
+    public Mono<BalanceResponse> getBalance(@PathVariable String currency) {
+        log.debug("Getting balance for currency: {}", currency);
+
+        return tradingService.getBalance(currency)
+                .map(balance -> new BalanceResponse(currency, balance, 0.0, balance))
+                .defaultIfEmpty(new BalanceResponse(currency, 0.0, 0.0, 0.0));
     }
-    
-    // Inner class for balance response
-    record BalanceDto(String currency, double available, double locked, double total) {}
+
+    // Inner DTO class
+    public record BalanceResponse(
+            String currency,
+            double available,
+            double locked,
+            double total) {
+    }
 }
