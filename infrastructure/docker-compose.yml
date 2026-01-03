@@ -41,6 +41,9 @@ services:
     depends_on:
       - dragonfly
       - timescale
+    env_file:
+      - ../.env # Global configuration
+      - ../apps/kairos-core/.env # Service-specific configuration
     environment:
       RUST_LOG: info
       DRAGONFLY_URL: redis://dragonfly:6379
@@ -61,6 +64,9 @@ services:
       - kairos-core
       - dragonfly
       - timescale
+    env_file:
+      - ../.env # Global configuration
+      - ../apps/kairos-api/.env # Service-specific configuration
     environment:
       # Database Configuration
       TIMESCALE_HOST: timescale
@@ -91,6 +97,9 @@ services:
     container_name: kairos-web
     depends_on:
       - kairos-api
+    env_file:
+      - ../.env # Global configuration
+      - ../apps/kairos-web/.env # Service-specific configuration
     ports:
       - "4200:80"
     networks:

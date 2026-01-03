@@ -1,0 +1,1 @@
+[] ⭕ concecion por gRPC a monolito de rust
