@@ -1,141 +1,86 @@
-# KAIRÓS Dashboard - Angular Application
+# kairos-web - Trading Dashboard (Angular)
 
-Frontend dashboard for the KAIRÓS trading system.
+Dashboard web para visualizar mercados, gestionar estrategias y monitorear el sistema KAIRÓS en tiempo real.
 
-## Technology Stack
+---
 
-- **Angular 21**
-- **TypeScript 5.9**
-- **RxJS 7.8**
-- **WebSocket** for real-time data streaming
+## 📖 Descripción
 
-## Architecture
+**kairos-web** es una aplicación Angular 21 que proporciona:
+- Visualización de precios en tiempo real
+- Gestión de órdenes de trading
+- Monitoreo de estrategias activas
+- Configuración del sistema
 
-The dashboard communicates with the `kairos-api` (Java Spring Boot) via:
+---
 
-1. **REST API** - HTTP calls for queries and commands
-2. **WebSocket** - Real-time market data streaming
+## 🚀 Instalación y Configuración
 
-### Services
+### Prerequisitos
 
-Located in `src/app/services/`:
+- **Node.js 18+**
+- **npm 9+**
+- **kairos-api** corriendo en http://localhost:4000
 
-#### MarketDataService
-- `getRecentTicks(symbol, limit)` - Get recent market ticks
-- `getHistoricalTicks(symbol, start, end)` - Historical ticks
-- `getOhlcvCandles(symbol, start?, end?, limit)` - OHLCV candles
-- `getLatestPrice(symbol)` - Latest price from DragonflyDB
-
-#### TradingService
-- `placeOrder(request)` - Place a new order
-- `cancelOrder(orderId)` - Cancel an order
-- `getOrderStatus(orderId)` - Get order status
-- `getOrderHistory(limit)` - Order history
-- `getOrdersByTimeRange(start, end)` - Orders by date range
-- `getOrdersByStatus(status, limit)` - Orders by status
-
-#### BalanceService
-- `getBalance(currency)` - Get balance for a currency
-
-#### WebSocketService
-- `connect()` - Connect to market data stream
-- `messages$` - Observable stream of market data
-- `disconnect()` - Disconnect from stream
-
-## Environment Configuration
-
-### Development (`src/environments/environment.ts`)
-```typescript
-{
-  apiUrl: 'http://localhost:4000',
-  wsUrl: 'ws://localhost:4000'
-}
-```
-
-### Production (`src/environments/environment.prod.ts`)
-```typescript
-{
-  apiUrl: 'http://kairos-api:4000',
-  wsUrl: 'ws://kairos-api:4000'
-}
-```
-
-## Development
+### Configurar e Instalar
 
 ```bash
-# Install dependencies
+cd apps/kairos-web
+
+# Instalar dependencias
 npm install
 
-# Run development server
+# Ejecutar en desarrollo
 npm start
 
-# Navigate to http://localhost:4200
+# Abrir navegador en http://localhost:4200
 ```
 
-## Build
+### Build de Producción
 
 ```bash
-# Production build
 npm run build
 
-# Output: dist/kairos-web
+# Archivos generados en dist/kairos-web/
 ```
 
-## Docker
+---
 
-See `Dockerfile` in this directory and `infrastructure/docker-compose.yml` for container deployment.
+## 🧪 Testing
 
-## Migration from GraphQL
+```bash
+# Tests unitarios
+npm test
 
-Previous implementation (planned but not built) would have used GraphQL. This implementation uses:
+# Tests e2e
+npm run e2e
 
-- **REST API** for queries and mutations
-- **WebSocket** for real-time subscriptions
-
-This provides better compatibility with standard HTTP tooling and clearer API contracts.
-
-## Example Usage
-
-### Component Example
-
-```typescript
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MarketDataService } from './services/market-data.service';
-import { WebSocketService } from './services/websocket.service';
-import { TradingService } from './services/trading.service';
-
-export class DashboardComponent implements OnInit, OnDestroy {
-  constructor(
-    private marketData: MarketDataService,
-    private ws: WebSocketService,
-    private trading: TradingService
-  ) {}
-
-  ngOnInit() {
-    // Get latest price
-    this.marketData.getLatestPrice('BTC-USDT').subscribe(price => {
-      console.log('Latest BTC price:', price.price);
-    });
-
-    // Connect to WebSocket for real-time updates
-    this.ws.connect();
-    this.ws.messages$.subscribe(message => {
-      console.log('Real-time update:', message);
-    });
-
-    // Place an order
-    this.trading.placeOrder({
-      symbol: 'BTC-USDT',
-      side: 'BUY',
-      orderType: 'MARKET',
-      quantity: 0.01
-    }).subscribe(response => {
-      console.log('Order placed:', response);
-    });
-  }
-
-  ngOnDestroy() {
-    this.ws.disconnect();
-  }
-}
+# Coverage
+npm run test:coverage
 ```
+
+Ver [TESTING.md](./TESTING.md) para más detalles.
+
+---
+
+## 🐳 Docker
+
+```bash
+# Desde la raíz del proyecto
+docker build -f infrastructure/docker/Dockerfile.web -t kairos-web:latest .
+
+# Ejecutar
+docker run -p 4200:80 kairos-web:latest
+```
+
+---
+
+## 📚 Referencias
+
+- [Angular Docs](https://angular.io/docs)
+- [RxJS Guide](https://rxjs.dev/guide/overview)
+
+---
+
+**Mantenido por:** KAIRÓS Team  
+**Última actualización:** 2026-01-06
