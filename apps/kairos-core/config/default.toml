@@ -38,7 +38,7 @@ okx_ws_private_url = "wss://ws.okx.com:8443/ws/v5/private"
 okx_ws_business_url = "wss://ws.okx.com:8443/ws/v5/business"
 okx_rest_url = "https://www.okx.com"
 ws_reconnect_delay_ms = 5000
-ws_max_reconnect_attempts = 10
+ws_max_erconnect_attempts = 10
 ws_ping_interval_sec = 20
 
 # ----------------------------------------------------------------------------

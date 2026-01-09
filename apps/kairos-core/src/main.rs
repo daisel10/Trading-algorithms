@@ -31,14 +31,8 @@ async fn main() -> anyhow::Result<()> {
     info!("⚡ Initializing Tokio Runtime");
     info!("🌍 Environment: {}", settings.environment);
     info!("📋 Configuration loaded successfully");
-    info!("   gRPC Server: {}", settings.grpc_address());
-    info!("   Exchange: {}", settings.exchange.okx_ws_public_url);
-    info!(" okx_api_key: {:?}", settings.exchange.okx_api_key);
-    // Ejemplo: Leer una variable directamente del .env (no de Settings)
-    if let Ok(custom_var) = std::env::var("CUSTOM_VAR") {
-        info!("📌 CUSTOM_VAR from .env: {}", custom_var);
-    }
 
+    
     // TODO: Initialize components
     // 1. Create broadcast channel for market data
     // 2. Start Feed Handler (The Feed Handler)
