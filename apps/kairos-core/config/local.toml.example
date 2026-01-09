@@ -1,0 +1,32 @@
+# ============================================================================
+# KAIRÓS Core - Local Configuration Override (EXAMPLE)
+# ============================================================================
+# Copy this file to config/local.toml and customize for your local setup
+# local.toml is gitignored and will override all other configurations
+# ============================================================================
+
+# Example: Override logging for your local machine
+# rust_log = "trace"
+
+# Example: Use a different gRPC port locally
+# [grpc]
+# port = 50053
+# host = "127.0.0.1"
+
+# Example: Connect to local database instead of Docker
+# [database]
+# max_connections = 3
+
+# Example: Override exchange URLs for local testing
+# [exchange]
+# okx_ws_public_url = "ws://localhost:8080/mock"
+
+# Example: Very conservative trading limits for local testing
+# [trading]
+# max_position_size = 10.0
+# max_leverage = 1.0
+
+# Example: Enable specific debug features locally
+# [features]
+# enable_paper_trading = true
+# enable_debug_endpoints = true

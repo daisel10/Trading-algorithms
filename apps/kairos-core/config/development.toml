@@ -1,0 +1,51 @@
+# ============================================================================
+# KAIRÓS Core - Development Environment Overrides
+# ============================================================================
+# These settings override default.toml for development environment
+# ============================================================================
+
+# Development uses verbose logging
+rust_log = "debug,kairos_core=trace,sqlx=debug"
+rust_backtrace = "1"
+
+[grpc]
+host = "127.0.0.1"          # Only localhost in dev
+max_concurrent_streams = 50 # Lower for dev
+
+[database]
+max_connections = 5 # Fewer connections in dev
+min_connections = 1
+
+[exchange]
+# Use demo/testnet URLs for safe development
+okx_ws_public_url = "wss://wspap.okx.com:8443/ws/v5/public"
+okx_ws_private_url = "wss://wspap.okx.com:8443/ws/v5/private"
+okx_ws_business_url = "wss://wspap.okx.com:8443/ws/v5/business"
+ws_reconnect_delay_ms = 3000
+ws_max_reconnect_attempts = 999                                 # Infinite retries in dev
+
+[trading]
+order_timeout_sec = 60   # Longer timeouts for debugging
+max_pending_orders = 50
+order_retry_attempts = 5
+# Conservative limits for development
+max_position_size = 100.0
+max_leverage = 1.0
+stop_loss_percentage = 1.0
+take_profit_percentage = 3.0
+tick_buffer_size = 500
+orderbook_depth = 10
+kline_intervals = "1m,5m,15m"
+
+[performance]
+tokio_worker_threads = 2 # Lower resources in dev
+rayon_num_threads = 2
+
+[monitoring]
+metrics_interval_sec = 10 # More frequent metrics in dev
+
+[features]
+# Enable all debug features in development
+enable_paper_trading = true
+enable_debug_endpoints = true
+enable_backtesting = true

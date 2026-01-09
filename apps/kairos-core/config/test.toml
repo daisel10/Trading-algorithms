@@ -1,0 +1,49 @@
+# ============================================================================
+# KAIRÓS Core - Test Environment Overrides
+# ============================================================================
+# These settings override default.toml for test environment
+# ============================================================================
+
+rust_log = "info,kairos_core=debug"
+
+[grpc]
+port = 50052                # Different port to avoid conflicts
+max_concurrent_streams = 75
+
+[database]
+max_connections = 8
+min_connections = 2
+
+[exchange]
+# Use demo/testnet URLs for testing
+okx_ws_public_url = "wss://wspap.okx.com:8443/ws/v5/public"
+okx_ws_private_url = "wss://wspap.okx.com:8443/ws/v5/private"
+okx_ws_business_url = "wss://wspap.okx.com:8443/ws/v5/business"
+ws_reconnect_delay_ms = 4000
+ws_max_reconnect_attempts = 50
+
+[trading]
+order_timeout_sec = 45
+max_pending_orders = 75
+order_retry_attempts = 4
+# Moderate limits for testing
+max_position_size = 500.0
+max_leverage = 2.0
+stop_loss_percentage = 1.5
+take_profit_percentage = 4.0
+tick_buffer_size = 750
+orderbook_depth = 15
+kline_intervals = "1m,5m,15m,1h"
+
+[performance]
+tokio_worker_threads = 3
+rayon_num_threads = 3
+
+[monitoring]
+metrics_port = 9091       # Different port for test
+metrics_interval_sec = 30
+
+[features]
+enable_paper_trading = true
+enable_debug_endpoints = true
+enable_backtesting = false

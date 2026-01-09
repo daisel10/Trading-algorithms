@@ -1,0 +1,42 @@
+# ============================================================================
+# KAIRÓS Core - Production Environment Overrides
+# ============================================================================
+# These settings override default.toml for production environment
+# ⚠️  CAUTION: This environment connects to LIVE exchanges with REAL MONEY
+# ============================================================================
+
+# Minimal logging in production for performance
+rust_log = "warn,kairos_core=info"
+rust_backtrace = "0"
+
+[grpc]
+# Production uses all default values from default.toml
+# but we can override if needed
+
+[database]
+# Production database settings
+max_connections = 10
+min_connections = 2
+
+[exchange]
+# Production uses LIVE exchange URLs (from default.toml)
+# These are already set to production values in default.toml
+
+[trading]
+# Production trading limits (using defaults from default.toml)
+# All production values are already optimized in default.toml
+
+[performance]
+# Full resources in production
+tokio_worker_threads = 4
+rayon_num_threads = 4
+
+[monitoring]
+# Standard monitoring
+metrics_interval_sec = 60
+
+[features]
+# NO debug features in production
+enable_paper_trading = false
+enable_debug_endpoints = false
+enable_backtesting = false

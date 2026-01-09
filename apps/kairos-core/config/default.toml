@@ -1,0 +1,80 @@
+# ============================================================================
+# KAIRÓS Core - Default Configuration
+# ============================================================================
+# This is the base configuration file. All settings here serve as defaults
+# and can be overridden by environment-specific configs or local.toml
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Logging Configuration
+# ----------------------------------------------------------------------------
+rust_log = "info,kairos_core=debug"
+rust_backtrace = "1"
+
+# ----------------------------------------------------------------------------
+# gRPC Server Configuration
+# ----------------------------------------------------------------------------
+[grpc]
+port = 50051
+host = "0.0.0.0"
+max_concurrent_streams = 100
+keepalive_interval_sec = 30
+keepalive_timeout_sec = 10
+
+# ----------------------------------------------------------------------------
+# Database Configuration
+# ----------------------------------------------------------------------------
+[database]
+max_connections = 10
+min_connections = 2
+connect_timeout_sec = 5
+
+# ----------------------------------------------------------------------------
+# Exchange Configuration
+# ----------------------------------------------------------------------------
+[exchange]
+okx_ws_public_url = "wss://ws.okx.com:8443/ws/v5/public"
+okx_ws_private_url = "wss://ws.okx.com:8443/ws/v5/private"
+okx_ws_business_url = "wss://ws.okx.com:8443/ws/v5/business"
+okx_rest_url = "https://www.okx.com"
+ws_reconnect_delay_ms = 5000
+ws_max_reconnect_attempts = 10
+ws_ping_interval_sec = 20
+
+# ----------------------------------------------------------------------------
+# Trading Engine Configuration
+# ----------------------------------------------------------------------------
+[trading]
+order_timeout_sec = 30
+max_pending_orders = 100
+order_retry_attempts = 3
+max_position_size = 1000.0
+max_leverage = 3.0
+stop_loss_percentage = 2.0
+take_profit_percentage = 5.0
+tick_buffer_size = 1000
+orderbook_depth = 20
+kline_intervals = "1m,5m,15m,1h,4h,1d"
+
+# ----------------------------------------------------------------------------
+# Performance & Threading
+# ----------------------------------------------------------------------------
+[performance]
+tokio_worker_threads = 4
+rayon_num_threads = 4
+
+# ----------------------------------------------------------------------------
+# Monitoring & Metrics
+# ----------------------------------------------------------------------------
+[monitoring]
+enable_metrics = true
+metrics_port = 9090
+metrics_interval_sec = 60
+
+# ----------------------------------------------------------------------------
+# Feature Flags
+# ----------------------------------------------------------------------------
+[features]
+enable_paper_trading = false
+enable_debug_endpoints = false
+enable_backtesting = false
