@@ -8,8 +8,25 @@
 # ----------------------------------------------------------------------------
 # Logging Configuration
 # ----------------------------------------------------------------------------
+[logging]
+# Log levels (RUST_LOG environment variable)
 rust_log = "info,kairos_core=debug"
 rust_backtrace = "1"
+
+# Enable file logging (rotates daily)
+enable_file_logging = true
+log_directory = "logs"
+log_file_prefix = "kairos-core"
+
+# Log format: "human" (console) or "json" (structured)
+console_format = "human"
+file_format = "json"
+
+# Rotation: "hourly", "daily", "never"
+rotation = "daily"
+
+# Maximum number of log files to keep (0 = unlimited)
+max_log_files = 30
 
 # ----------------------------------------------------------------------------
 # gRPC Server Configuration

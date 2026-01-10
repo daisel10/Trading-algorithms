@@ -54,8 +54,7 @@ impl fmt::Display for Environment {
 pub struct Settings {
     #[serde(skip)]
     pub environment: Environment,
-    pub rust_log: String,
-    pub rust_backtrace: String,
+    pub logging: LoggingSettings,
     pub grpc: GrpcSettings,
     pub database: DatabaseSettings,
     pub exchange: ExchangeSettings,
@@ -63,6 +62,19 @@ pub struct Settings {
     pub performance: PerformanceSettings,
     pub monitoring: MonitoringSettings,
     pub features: FeatureFlags,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct LoggingSettings {
+    pub rust_log: String,
+    pub rust_backtrace: String,
+    pub enable_file_logging: bool,
+    pub log_directory: String,
+    pub log_file_prefix: String,
+    pub console_format: String,
+    pub file_format: String,
+    pub rotation: String,
+    pub max_log_files: usize,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -209,8 +221,17 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             environment: Environment::Development,
-            rust_log: "info,kairos_core=debug".to_string(),
-            rust_backtrace: "1".to_string(),
+            logging: LoggingSettings {
+                rust_log: "info,kairos_core=debug".to_string(),
+                rust_backtrace: "1".to_string(),
+                enable_file_logging: true,
+                log_directory: "logs".to_string(),
+                log_file_prefix: "kairos-core".to_string(),
+                console_format: "human".to_string(),
+                file_format: "json".to_string(),
+                rotation: "daily".to_string(),
+                max_log_files: 30,
+            },
             grpc: GrpcSettings {
                 port: 50051,
                 host: "0.0.0.0".to_string(),

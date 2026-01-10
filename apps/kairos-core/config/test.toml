@@ -4,7 +4,26 @@
 # These settings override default.toml for test environment
 # ============================================================================
 
+# ----------------------------------------------------------------------------
+# Test Logging Configuration
+# ----------------------------------------------------------------------------
+[logging]
+# Moderate logging for test visibility
 rust_log = "info,kairos_core=debug"
+rust_backtrace = "1"
+
+# Enable file logging for test result analysis
+enable_file_logging = true
+log_directory = "logs/test"
+log_file_prefix = "kairos-test"
+
+# Human-readable format for test debugging
+console_format = "human"
+file_format = "human"
+
+# Keep only last 3 days for tests
+rotation = "daily"
+max_log_files = 3
 
 [grpc]
 port = 50052                # Different port to avoid conflicts

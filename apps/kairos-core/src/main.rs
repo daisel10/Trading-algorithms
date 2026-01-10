@@ -1,13 +1,12 @@
-use tracing::{error, info};
-use tracing_subscriber;
+use tracing::info;
 
 mod adapters;
 mod application;
 mod config;
 mod domain;
+mod logging;
 
 use config::Settings;
-
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -18,21 +17,19 @@ async fn main() -> anyhow::Result<()> {
     let settings =
         Settings::new().map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
 
-    // Initialize tracing with configured log level
-    std::env::set_var("RUST_LOG", &settings.rust_log);
-    std::env::set_var("RUST_BACKTRACE", &settings.rust_backtrace);
+    // Initialize hybrid logging (console + file)
+    logging::init_logging(&settings)?;
 
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .compact()
-        .init();
+    // Clean up old log files
+    if let Err(e) = logging::cleanup_old_logs(&settings.logging) {
+        tracing::warn!("Failed to cleanup old logs: {}", e);
+    }
 
     info!("🚀 Starting KAIRÓS Trading Core...");
     info!("⚡ Initializing Tokio Runtime");
     info!("🌍 Environment: {}", settings.environment);
     info!("📋 Configuration loaded successfully");
 
-    
     // TODO: Initialize components
     // 1. Create broadcast channel for market data
     // 2. Start Feed Handler (The Feed Handler)

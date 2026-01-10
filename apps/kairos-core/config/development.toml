@@ -4,9 +4,26 @@
 # These settings override default.toml for development environment
 # ============================================================================
 
-# Development uses verbose logging
+# ----------------------------------------------------------------------------
+# Development Logging Configuration
+# ----------------------------------------------------------------------------
+[logging]
+# Verbose logging for development and debugging
 rust_log = "debug,kairos_core=trace,sqlx=debug"
-rust_backtrace = "1"
+rust_backtrace = "full"                         # Full backtrace for debugging
+
+# Enable file logging to review logs after debugging sessions
+enable_file_logging = true
+log_directory = "logs"
+log_file_prefix = "kairos-dev"
+
+# Human-readable format for both console and files in development
+console_format = "human"
+file_format = "human"    # Human-readable for easier debugging
+
+# Keep only last 7 days in development
+rotation = "daily"
+max_log_files = 7
 
 [grpc]
 host = "127.0.0.1"          # Only localhost in dev

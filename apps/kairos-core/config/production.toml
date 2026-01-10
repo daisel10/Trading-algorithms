@@ -5,9 +5,26 @@
 # ⚠️  CAUTION: This environment connects to LIVE exchanges with REAL MONEY
 # ============================================================================
 
-# Minimal logging in production for performance
+# ----------------------------------------------------------------------------
+# Production Logging Configuration
+# ----------------------------------------------------------------------------
+[logging]
+# Minimal logging for performance - only warnings and errors
 rust_log = "warn,kairos_core=info"
-rust_backtrace = "0"
+rust_backtrace = "0"               # Disabled for performance
+
+# Disable file logging in production - use Docker/log aggregator instead
+enable_file_logging = false
+log_directory = "logs"
+log_file_prefix = "kairos-prod"
+
+# JSON format for log aggregators (Loki, ELK, etc.)
+console_format = "json" # Structured output for parsing
+file_format = "json"
+
+# If file logging is enabled, keep more history
+rotation = "daily"
+max_log_files = 90 # 90 days retention
 
 [grpc]
 # Production uses all default values from default.toml
