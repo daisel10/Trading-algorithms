@@ -488,3 +488,14 @@ Al crear o revisar manejo de errores, verifica:
 
 ---
 
+## 🔗 Integración con Logging
+
+### Principios Fundamentales
+
+1. **❌ Evita el doble logging** - Solo loguea donde manejas el error, no en cada función
+2. **✅ Usa `#[instrument]` con fields** - Agrega contexto automático a todos los logs
+3. **✅ Lógica de recuperación** - Distingue errores recuperables de fatales
+4. **✅ Retorna `Result`** - Las funciones no deben loguear, solo retornar errores
+
+> Para la documentación completa, continúa leyendo...
+
