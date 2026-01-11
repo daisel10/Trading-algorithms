@@ -1,7 +1,7 @@
 // Binance WebSocket feed handler
 
+use super::error::{FeedError, FeedResult};
 use crate::config::Settings;
-use anyhow::{anyhow, Context, Result};
 use chrono::Utc;
 use futures::StreamExt;
 use kairos_domain::{Exchange, MarketTick};
@@ -37,16 +37,13 @@ impl BinanceCredentials {
     /// let settings = Settings::new()?;
     /// let credentials = BinanceCredentials::from_settings(&settings)?;
     /// ```
-    pub fn from_settings(settings: &Settings) -> Result<Self> {
+    pub fn from_settings(settings: &Settings) -> FeedResult<Self> {
         let api_key = settings
             .exchange
             .binance_api_key
             .as_ref()
-            .ok_or_else(|| {
-                anyhow!(
-                    "KAIROS__EXCHANGE__BINANCE_API_KEY not set in environment. \
-                Add it to your .env file to enable Binance trading."
-                )
+            .ok_or_else(|| FeedError::MissingCredentials {
+                exchange: "Binance".to_string(),
             })?
             .clone();
 
@@ -54,11 +51,8 @@ impl BinanceCredentials {
             .exchange
             .binance_api_secret
             .as_ref()
-            .ok_or_else(|| {
-                anyhow!(
-                    "KAIROS__EXCHANGE__BINANCE_API_SECRET not set in environment. \
-                Add it to your .env file to enable Binance trading."
-                )
+            .ok_or_else(|| FeedError::MissingCredentials {
+                exchange: "Binance".to_string(),
             })?
             .clone();
 
@@ -177,7 +171,7 @@ impl BinanceFeedHandler {
     }
 
     /// Start the WebSocket connection and begin streaming market data
-    pub async fn start(&self) -> Result<()> {
+    pub async fn start(&self) -> FeedResult<()> {
         loop {
             match self.connect_and_stream().await {
                 Ok(_) => {
@@ -192,7 +186,7 @@ impl BinanceFeedHandler {
     }
 
     /// Internal method to handle connection and streaming
-    async fn connect_and_stream(&self) -> Result<()> {
+    async fn connect_and_stream(&self) -> FeedResult<()> {
         // Build WebSocket URL for combined streams
         let streams: Vec<String> = self
             .symbols
@@ -208,9 +202,7 @@ impl BinanceFeedHandler {
 
         tracing::info!("Connecting to Binance WebSocket: {}", ws_url);
 
-        let (ws_stream, _) = connect_async(&ws_url)
-            .await
-            .context("Failed to connect to Binance WebSocket")?;
+        let (ws_stream, _) = connect_async(&ws_url).await?;
 
         tracing::info!(
             "✅ Connected to Binance WebSocket, subscribed to {} symbols: {:?}",
@@ -250,7 +242,7 @@ impl BinanceFeedHandler {
     }
 
     /// Process a single message from Binance WebSocket
-    async fn process_message(&self, text: &str) -> Result<()> {
+    async fn process_message(&self, text: &str) -> FeedResult<()> {
         // Binance combined streams wrap messages in a data field
         #[derive(Debug, Deserialize)]
         struct StreamWrapper {
@@ -258,12 +250,10 @@ impl BinanceFeedHandler {
             data: serde_json::Value,
         }
 
-        let wrapper: StreamWrapper =
-            serde_json::from_str(text).context("Failed to parse stream wrapper")?;
+        let wrapper: StreamWrapper = serde_json::from_str(text)?;
 
         // Parse the aggregated trade message
-        let agg_trade: BinanceAggTradeMessage = serde_json::from_value(wrapper.data)
-            .context("Failed to parse aggregated trade message")?;
+        let agg_trade: BinanceAggTradeMessage = serde_json::from_value(wrapper.data)?;
 
         // Convert to MarketTick
         let market_tick = self.convert_to_market_tick(agg_trade)?;
@@ -282,12 +272,21 @@ impl BinanceFeedHandler {
     }
 
     /// Convert Binance message to internal MarketTick format
-    fn convert_to_market_tick(&self, msg: BinanceAggTradeMessage) -> Result<MarketTick> {
-        let price = msg.price.parse::<f64>().context("Failed to parse price")?;
+    fn convert_to_market_tick(&self, msg: BinanceAggTradeMessage) -> FeedResult<MarketTick> {
+        let price = msg
+            .price
+            .parse::<f64>()
+            .map_err(|source| FeedError::NumberParseError {
+                field: "price".to_string(),
+                source,
+            })?;
         let volume = msg
             .quantity
             .parse::<f64>()
-            .context("Failed to parse quantity")?;
+            .map_err(|source| FeedError::NumberParseError {
+                field: "quantity".to_string(),
+                source,
+            })?;
 
         Ok(MarketTick {
             id: Uuid::new_v4(),

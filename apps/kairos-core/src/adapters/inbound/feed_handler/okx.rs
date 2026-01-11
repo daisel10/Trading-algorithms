@@ -1,7 +1,7 @@
 // OKX WebSocket feed handler
 
+use super::error::{FeedError, FeedResult};
 use crate::config::Settings;
-use anyhow::{anyhow, Result};
 use kairos_domain::MarketTick;
 use tokio::sync::broadcast;
 
@@ -32,16 +32,13 @@ impl OkxCredentials {
     /// let settings = Settings::new()?;
     /// let credentials = OkxCredentials::from_settings(&settings)?;
     /// ```
-    pub fn from_settings(settings: &Settings) -> Result<Self> {
+    pub fn from_settings(settings: &Settings) -> FeedResult<Self> {
         let api_key = settings
             .exchange
             .okx_api_key
             .as_ref()
-            .ok_or_else(|| {
-                anyhow!(
-                    "KAIROS__EXCHANGE__OKX_API_KEY not set in environment. \
-                Add it to your .env file to enable OKX trading."
-                )
+            .ok_or_else(|| FeedError::MissingCredentials {
+                exchange: "OKX".to_string(),
             })?
             .clone();
 
@@ -49,11 +46,8 @@ impl OkxCredentials {
             .exchange
             .okx_api_secret
             .as_ref()
-            .ok_or_else(|| {
-                anyhow!(
-                    "KAIROS__EXCHANGE__OKX_API_SECRET not set in environment. \
-                Add it to your .env file to enable OKX trading."
-                )
+            .ok_or_else(|| FeedError::MissingCredentials {
+                exchange: "OKX".to_string(),
             })?
             .clone();
 
@@ -165,7 +159,7 @@ impl OkxFeedHandler {
         }
     }
 
-    pub async fn start(&self) -> Result<()> {
+    pub async fn start(&self) -> FeedResult<()> {
         // TODO: Implement WebSocket connection to OKX
         // 1. Connect to self.ws_url
         // 2. Authenticate using api_key, api_secret, api_passphrase (if needed)

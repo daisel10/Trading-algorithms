@@ -16,6 +16,18 @@ pub enum DomainError {
 
     #[error("Exchange error: {0}")]
     ExchangeError(String),
+
+    #[error("Order validation failed: {0}")]
+    ValidationFailed(String),
+
+    #[error("Symbol '{symbol}' not found")]
+    SymbolNotFound { symbol: String },
+
+    #[error("Invalid price: {0}")]
+    InvalidPrice(String),
+
+    #[error("Invalid quantity: {0}")]
+    InvalidQuantity(String),
 }
 
 pub type DomainResult<T> = Result<T, DomainError>;

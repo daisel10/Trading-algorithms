@@ -6,6 +6,7 @@ mod config;
 mod domain;
 mod logging;
 
+use anyhow::Context;
 use config::Settings;
 
 #[tokio::main]
@@ -15,10 +16,14 @@ async fn main() -> anyhow::Result<()> {
 
     // Load configuration
     let settings =
-        Settings::new().map_err(|e| anyhow::anyhow!("Failed to load configuration: {}", e))?;
+        Settings::new()
+        .context("Failed to initialize system config")?;
+        // .map_err(|e| anyhow::anyhow!("Failed to initialize system config: {}", e))?;
 
     // Initialize hybrid logging (console + file)
-    logging::init_logging(&settings)?;
+    let _guard = logging::init_logging(&settings)
+        .context("Failed to initialize logging system")?;
+        // .map_err(|e| anyhow::anyhow!("Failed to initialize logging system: {}", e))?;
 
     // Clean up old log files
     if let Err(e) = logging::cleanup_old_logs(&settings.logging) {
@@ -44,7 +49,9 @@ async fn main() -> anyhow::Result<()> {
     info!("📡 Listening for market data...");
 
     // Keep the main task alive
-    tokio::signal::ctrl_c().await?;
+    tokio::signal::ctrl_c()
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to listen for shutdown signal: {}", e))?;
     info!("🛑 Shutting down KAIRÓS Core...");
 
     Ok(())

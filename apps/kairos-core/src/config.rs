@@ -1,6 +1,25 @@
-use config::{Config, ConfigError, Environment as ConfigEnvironment, File};
+use config::{Config, Environment as ConfigEnvironment, File};
 use serde::Deserialize;
 use std::fmt;
+use thiserror::Error;
+
+/// Configuration errors
+#[derive(Error, Debug)]
+pub enum ConfigError {
+    #[error("Failed to load configuration: {0}")]
+    LoadFailed(#[from] config::ConfigError),
+
+    #[error("Invalid environment: {0}")]
+    InvalidEnvironment(String),
+
+    #[error("Missing required configuration: {0}")]
+    MissingConfig(String),
+
+    #[error("Invalid configuration value for {field}: {reason}")]
+    InvalidValue { field: String, reason: String },
+}
+
+pub type ConfigResult<T> = Result<T, ConfigError>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Environment {
@@ -32,14 +51,14 @@ impl Environment {
 }
 
 impl std::str::FromStr for Environment {
-    type Err = String;
+    type Err = ConfigError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "dev" | "development" => Ok(Environment::Development),
             "test" | "testing" => Ok(Environment::Test),
             "prod" | "production" => Ok(Environment::Production),
-            _ => Err(format!("Unknown environment: {}", s)),
+            _ => Err(ConfigError::InvalidEnvironment(s.to_string())),
         }
     }
 }
@@ -158,7 +177,7 @@ pub struct FeatureFlags {
 
 impl Settings {
     /// Load configuration from environment-specific .env file and environment variables
-    pub fn new() -> Result<Self, ConfigError> {
+    pub fn new() -> ConfigResult<Self> {
         Self::new_with_env(Environment::detect())
     }
 
@@ -169,7 +188,7 @@ impl Settings {
     /// 2. config/{environment}.toml  - Environment-specific overrides
     /// 3. config/local.toml          - Local overrides (optional, gitignored)
     /// 4. Environment variables      - Highest priority overrides
-    pub fn new_with_env(env: Environment) -> Result<Self, ConfigError> {
+    pub fn new_with_env(env: Environment) -> ConfigResult<Self> {
         let run_mode = env.as_str();
 
         let config = Config::builder()
