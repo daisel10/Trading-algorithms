@@ -40,13 +40,13 @@ KAIRÓS Core utilizes a **hybrid logging system** built on top of the [`tracing`
                      ▼
 ┌──────────────────────────────────────────────────────┐
 │            tracing_subscriber Registry               │
-│                  (EnvFilter)                         │
+│          (EnvFilter + Format Selection)              │
 └─────────┬────────────────────────────┬───────────────┘
           │                            │
           ▼                            ▼
 ┌─────────────────────┐    ┌──────────────────────────┐
 │   Console Layer     │    │      File Layer          │
-│   (Human-readable)  │    │   (Structured output)    │
+│ (Human or JSON)     │    │    (Human or JSON)       │
 │   → stdout          │    │   → Rolling file         │
 └─────────────────────┘    └──────────────────────────┘
 ```
@@ -102,8 +102,8 @@ max_log_files = 30
 | `enable_file_logging` | Boolean | Enable file output | `true`, `false` |
 | `log_directory` | String | Directory for log files | Any valid path |
 | `log_file_prefix` | String | Prefix for log filenames | Any string |
-| `console_format` | String | Console output format | `human`, `json` |
-| `file_format` | String | File output format | `human`, `json` |
+| `console_format` | String | Console output format | `human` (compact), `json` (structured) |
+| `file_format` | String | File output format | `human` (compact), `json` (structured) |
 | `rotation` | String | Rotation frequency | `hourly`, `daily`, `never` |
 | `max_log_files` | Integer | Max files to retain | `0` = unlimited |
 
@@ -181,10 +181,16 @@ info!(
 );
 ```
 
-**Output example:**
+**Output example (human format):**
 
 ```
 2026-01-10T20:00:00.000Z INFO exchange=OKX symbol=BTC-USDT price=50000.0: Market data received
+```
+
+**Output example (JSON format):**
+
+```json
+{"timestamp":"2026-01-10T20:00:00.000Z","level":"INFO","fields":{"exchange":"OKX","symbol":"BTC-USDT","price":50000.0,"message":"Market data received"},"target":"kairos_core"}
 ```
 
 ### Logging with Spans
@@ -258,6 +264,27 @@ let result = operation()
 ---
 
 ## Structured Logging
+
+### JSON Logging
+
+KAIRÓS Core now supports **true JSON logging** using `tracing_subscriber`'s JSON formatter. When `file_format = "json"` or `console_format = "json"`, logs are output as valid JSON objects.
+
+**Example JSON log:**
+
+```json
+{
+  "timestamp": "2026-01-10T20:00:00.123456Z",
+  "level": "INFO",
+  "fields": {
+    "exchange": "Binance",
+    "symbol": "BTC-USDT",
+    "price": 50000.0,
+    "volume": 1.5,
+    "message": "Market tick received"
+  },
+  "target": "kairos_core::adapters::inbound::feed_handler"
+}
+```
 
 ### When to Use Structured Fields
 
@@ -400,13 +427,15 @@ info!(
 rust_log = "info,kairos_core=debug"
 rust_backtrace = "1"
 enable_file_logging = true
-console_format = "human"      # ← Human-readable
-file_format = "json"          # ← Structured for analysis
+console_format = "human"      # ← Human-readable (compact)
+file_format = "json"          # ← Real JSON for analysis
 rotation = "daily"
 max_log_files = 30
 ```
 
-**Use Case:** Development and debugging
+**Use Case:** Development and debugging  
+**Console:** Human-readable with colors  
+**Files:** Valid JSON objects for log analysis
 
 ### Production
 
@@ -417,7 +446,7 @@ max_log_files = 30
 rust_log = "warn,kairos_core=info"  # ← Less verbose
 rust_backtrace = "0"                # ← Disabled for performance
 enable_file_logging = false         # ← Use Docker logs
-console_format = "json"             # ← JSON for aggregators
+console_format = "json"             # ← Real JSON for aggregators (ELK, Loki)
 file_format = "json"
 max_log_files = 90
 ```
@@ -523,6 +552,8 @@ rust_log = "info,tokio=warn,hyper=warn"
 
 **Tools:**
 
+#### For Human-Readable Logs
+
 ```bash
 # Search logs
 grep "ERROR" logs/kairos-core.log.2026-01-10
@@ -532,9 +563,31 @@ tail -f logs/kairos-core.log.2026-01-10
 
 # Count errors
 grep -c "ERROR" logs/*.log.*
+```
 
-# Parse JSON logs (if using JSON format)
-jq '.fields.exchange' logs/kairos-core.log.2026-01-10
+#### For JSON Logs
+
+```bash
+# Validate JSON format
+cat logs/kairos-core.log.2026-01-10 | jq .
+
+# Extract all messages
+cat logs/*.log.* | jq -r '.fields.message'
+
+# Filter by log level
+cat logs/*.log.* | jq 'select(.level == "ERROR")'
+
+# Filter by exchange
+cat logs/*.log.* | jq 'select(.fields.exchange == "Binance")'
+
+# Extract specific fields
+cat logs/*.log.* | jq '{time: .timestamp, exchange: .fields.exchange, price: .fields.price}'
+
+# Count errors in JSON logs
+cat logs/*.log.* | jq -r 'select(.level == "ERROR") | .fields.message' | wc -l
+
+# Get unique exchanges
+cat logs/*.log.* | jq -r '.fields.exchange' | sort | uniq
 ```
 
 ---

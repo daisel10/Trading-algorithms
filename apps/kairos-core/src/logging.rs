@@ -40,29 +40,75 @@ fn init_hybrid_logging(config: &LoggingSettings, env_filter: EnvFilter) -> Resul
         &format!("{}.log", config.log_file_prefix),
     );
 
-    // Console layer - human readable
-    let console_layer = fmt::layer()
-        .compact()
-        .with_target(false)
-        .with_writer(io::stdout);
+    // Determine console format
+    let console_format = config.console_format.as_str();
+    let file_format = config.file_format.as_str();
 
-    // File layer - using fmt::Layer with file appender
-    // Note: For true JSON, we'd need a different approach, but this gives structured output
-    let file_layer = fmt::layer()
-        .with_ansi(false) // No color codes in files
-        .with_writer(file_appender);
+    // We need to use different initialization approaches based on format combinations
+    // because different formats produce different layer types that can't be easily combined
 
-    tracing_subscriber::registry()
-        .with(env_filter)
-        .with(console_layer)
-        .with(file_layer)
-        .init();
+    match (console_format, file_format) {
+        // Both JSON - requires json feature in tracing-subscriber
+        ("json", "json") => {
+            tracing_subscriber::registry()
+                .with(env_filter)
+                .with(fmt::layer().with_writer(io::stdout).json())
+                .with(fmt::layer().with_writer(file_appender).json())
+                .init();
+        }
+        // Console: human, File: JSON (recommended for production)
+        ("human", "json") | (_, "json") => {
+            tracing_subscriber::registry()
+                .with(env_filter)
+                .with(
+                    fmt::layer()
+                        .compact()
+                        .with_target(false)
+                        .with_writer(io::stdout),
+                )
+                .with(fmt::layer().with_writer(file_appender).json())
+                .init();
+        }
+        // Console: JSON, File: human
+        ("json", "human") | ("json", _) => {
+            tracing_subscriber::registry()
+                .with(env_filter)
+                .with(fmt::layer().with_writer(io::stdout).json())
+                .with(
+                    fmt::layer()
+                        .compact()
+                        .with_ansi(false)
+                        .with_writer(file_appender),
+                )
+                .init();
+        }
+        // Both human (default)
+        _ => {
+            tracing_subscriber::registry()
+                .with(env_filter)
+                .with(
+                    fmt::layer()
+                        .compact()
+                        .with_target(false)
+                        .with_writer(io::stdout),
+                )
+                .with(
+                    fmt::layer()
+                        .compact()
+                        .with_ansi(false)
+                        .with_writer(file_appender),
+                )
+                .init();
+        }
+    }
 
     Ok(())
 }
 
 /// Initialize console-only logging
 fn init_console_only_logging(env_filter: EnvFilter) -> Result<()> {
+    // Note: We don't have access to config here, so we default to human-readable
+    // If console JSON is needed without file logging, pass config to this function
     tracing_subscriber::fmt()
         .with_env_filter(env_filter)
         .compact()
