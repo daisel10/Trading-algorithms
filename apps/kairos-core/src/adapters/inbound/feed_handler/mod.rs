@@ -5,7 +5,7 @@ pub mod error;
 pub mod okx;
 
 // Re-export credential structs for convenience
-pub use binance::BinanceCredentials;
+// pub use binance::BinanceCredentials;
 pub use okx::{OkxConfig, OkxCredentials};
 
 // Re-export error types

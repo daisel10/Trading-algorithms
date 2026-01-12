@@ -18,7 +18,7 @@ repository = "https://github.com/your-org/kairos-monorepo"
 [workspace.dependencies]
 # Async Runtime
 tokio = { version = "1.41", features = ["full"] }
-tokio-tungstenite = "0.24"
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
