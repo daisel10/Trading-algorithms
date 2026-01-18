@@ -1,0 +1,309 @@
+[config]
+default_to_workspace = false
+min_version = "0.37.0"
+
+# ============================================================================
+# DEVELOPMENT COMMANDS
+# ============================================================================
+
+[tasks.format]
+description = "Format all Rust code using rustfmt"
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.format-check]
+description = "Check if code is formatted correctly"
+command = "cargo"
+args = ["fmt", "--all", "--", "--check"]
+
+[tasks.lint]
+description = "Run clippy for static analysis"
+command = "cargo"
+args = [
+    "clippy",
+    "--workspace",
+    "--all-targets",
+    "--all-features",
+    "--",
+    "-D",
+    "warnings",
+]
+
+[tasks.lint-fix]
+description = "Auto-fix clippy warnings where possible"
+command = "cargo"
+args = [
+    "clippy",
+    "--workspace",
+    "--all-targets",
+    "--all-features",
+    "--fix",
+    "--allow-dirty",
+]
+
+[tasks.check]
+description = "Check if code compiles without building"
+command = "cargo"
+args = ["check", "--workspace", "--all-targets", "--all-features"]
+
+[tasks.build]
+description = "Build all workspace members"
+command = "cargo"
+args = ["build", "--workspace"]
+
+[tasks.build-release]
+description = "Build all workspace members in release mode"
+command = "cargo"
+args = ["build", "--workspace", "--release"]
+
+[tasks.clean]
+description = "Clean build artifacts"
+command = "cargo"
+args = ["clean"]
+
+# ============================================================================
+# TESTING COMMANDS
+# ============================================================================
+
+[tasks.test]
+description = "Run all tests"
+command = "cargo"
+args = ["test", "--workspace"]
+
+[tasks.test-verbose]
+description = "Run all tests with verbose output"
+command = "cargo"
+args = ["test", "--workspace", "--", "--nocapture", "--test-threads=1"]
+
+[tasks.test-core]
+description = "Run tests for kairos-core only"
+command = "cargo"
+args = ["test", "--package", "kairos-core"]
+
+[tasks.test-domain]
+description = "Run tests for kairos-domain only"
+command = "cargo"
+args = ["test", "--package", "kairos-domain"]
+
+[tasks.test-coverage]
+description = "Generate test coverage report (requires cargo-tarpaulin)"
+command = "cargo"
+args = ["tarpaulin", "--workspace", "--out", "Html", "--output-dir", "coverage"]
+
+# ============================================================================
+# QUALITY ASSURANCE
+# ============================================================================
+
+[tasks.qa]
+description = "Run all quality checks (format-check, lint, test)"
+dependencies = ["format-check", "lint", "test"]
+
+[tasks.fix-all]
+description = "Auto-fix formatting and clippy issues"
+dependencies = ["format", "lint-fix"]
+
+[tasks.check-all]
+description = "Comprehensive check before commit"
+dependencies = ["format-check", "lint", "check", "test"]
+
+# ============================================================================
+# RUN COMMANDS
+# ============================================================================
+
+[tasks.run-core]
+description = "Run kairos-core application"
+command = "cargo"
+args = ["run", "--package", "kairos-core"]
+cwd = "apps/kairos-core"
+
+[tasks.run-core-release]
+description = "Run kairos-core in release mode"
+command = "cargo"
+args = ["run", "--package", "kairos-core", "--release"]
+cwd = "apps/kairos-core"
+
+[tasks.dev]
+description = "Run kairos-core with logging enabled"
+env = { "RUST_LOG" = "debug", "RUST_BACKTRACE" = "1" }
+command = "cargo"
+args = ["run", "--package", "kairos-core"]
+cwd = "apps/kairos-core"
+
+# ============================================================================
+# WATCH COMMANDS (requires cargo-watch)
+# ============================================================================
+
+[tasks.watch]
+description = "Watch for changes and rebuild"
+command = "cargo"
+args = ["watch", "-x", "check"]
+
+[tasks.watch-test]
+description = "Watch for changes and run tests"
+command = "cargo"
+args = ["watch", "-x", "test"]
+
+[tasks.watch-run]
+description = "Watch for changes and run kairos-core"
+command = "cargo"
+args = ["watch", "-x", "run --package kairos-core"]
+cwd = "apps/kairos-core"
+
+# ============================================================================
+# DATABASE COMMANDS
+# ============================================================================
+
+[tasks.db-migrate]
+description = "Run database migrations (requires sqlx-cli)"
+command = "sqlx"
+args = ["migrate", "run", "--source", "apps/kairos-core/migrations"]
+
+[tasks.db-migrate-revert]
+description = "Revert last database migration"
+command = "sqlx"
+args = ["migrate", "revert", "--source", "apps/kairos-core/migrations"]
+
+[tasks.db-reset]
+description = "Reset database (drop and recreate)"
+command = "sqlx"
+args = ["database", "reset", "--source", "apps/kairos-core/migrations"]
+
+[tasks.db-create]
+description = "Create database"
+command = "sqlx"
+args = ["database", "create"]
+
+[tasks.db-drop]
+description = "Drop database"
+command = "sqlx"
+args = ["database", "drop"]
+
+# ============================================================================
+# DOCKER COMMANDS
+# ============================================================================
+
+[tasks.docker-build]
+description = "Build Docker images"
+command = "docker-compose"
+args = ["build"]
+cwd = "./infrastructure"
+
+[tasks.docker-up]
+description = "Start all Docker services"
+command = "docker-compose"
+args = ["up", "-d"]
+cwd = "./infrastructure"
+
+[tasks.docker-down]
+description = "Stop all Docker services"
+command = "docker-compose"
+args = ["down"]
+cwd = "./infrastructure"
+
+[tasks.docker-logs]
+description = "Show Docker logs"
+command = "docker-compose"
+args = ["logs", "-f"]
+cwd = "./infrastructure"
+
+[tasks.docker-restart]
+description = "Restart all Docker services"
+dependencies = ["docker-down", "docker-up"]
+
+[tasks.docker-clean]
+description = "Stop and remove all containers, networks, and volumes"
+command = "docker-compose"
+args = ["down", "-v", "--remove-orphans"]
+cwd = "./infrastructure"
+
+# ============================================================================
+# DOCUMENTATION
+# ============================================================================
+
+[tasks.docs]
+description = "Generate and open documentation"
+command = "cargo"
+args = ["doc", "--workspace", "--no-deps", "--open"]
+
+[tasks.docs-build]
+description = "Generate documentation without opening"
+command = "cargo"
+args = ["doc", "--workspace", "--no-deps"]
+
+# ============================================================================
+# DEPENDENCIES
+# ============================================================================
+
+[tasks.deps-update]
+description = "Update dependencies (requires cargo-edit)"
+command = "cargo"
+args = ["update"]
+
+[tasks.deps-outdated]
+description = "Check for outdated dependencies (requires cargo-outdated)"
+command = "cargo"
+args = ["outdated", "--workspace"]
+
+[tasks.deps-tree]
+description = "Show dependency tree"
+command = "cargo"
+args = ["tree", "--workspace"]
+
+[tasks.deps-audit]
+description = "Audit dependencies for security issues (requires cargo-audit)"
+command = "cargo"
+args = ["audit"]
+
+# ============================================================================
+# PROTOBUF GENERATION
+# ============================================================================
+
+[tasks.proto-build]
+description = "Rebuild protobuf definitions"
+command = "cargo"
+args = ["build", "--package", "kairos-proto"]
+
+# ============================================================================
+# BENCHMARKS
+# ============================================================================
+
+[tasks.bench]
+description = "Run benchmarks"
+command = "cargo"
+args = ["bench", "--workspace"]
+
+# ============================================================================
+# COMPLETE WORKFLOWS
+# ============================================================================
+
+[tasks.setup]
+description = "Initial project setup (install tools and create DB)"
+dependencies = ["install-tools", "db-create", "db-migrate"]
+
+[tasks.install-tools]
+description = "Install required development tools"
+script = '''
+cargo install cargo-watch
+cargo install cargo-tarpaulin
+cargo install cargo-edit
+cargo install cargo-outdated
+cargo install cargo-audit
+cargo install sqlx-cli --features postgres
+'''
+
+[tasks.pre-commit]
+description = "Run before committing (format, lint, test)"
+dependencies = ["format", "lint", "test"]
+
+[tasks.ci]
+description = "Run CI pipeline locally"
+dependencies = ["format-check", "lint", "check", "test", "build-release"]
+
+[tasks.dev-env]
+description = "Start development environment (Docker + run)"
+dependencies = ["docker-up"]
+run_task = "dev"
+
+[tasks.full-reset]
+description = "Complete reset (clean build, reset DB, rebuild)"
+dependencies = ["clean", "db-reset", "build"]
