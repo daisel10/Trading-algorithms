@@ -1,12 +1,69 @@
-# Agent Definitions Registry - kairos-core
+# kairos-core: Configuración de Agentes
 
-> **Note:** Este archivo define los perfiles, comportamientos y herramientas de los agentes que trabajan en el **Motor de Trading de Alta Frecuencia (kairos-core)** del sistema KAIRÓS.
+## 📘 Filosofía de Uso
+
+**Este documento define el contexto del motor de trading KAIRÓS (Rust) para agentes de IA.**
+Consulta las habilidades específicas en `.ai/skills/` según la tarea que vayas a realizar.
 
 ---
 
-## 📌 Descripción del Proyecto
+## 🛠 Habilidades Disponibles (Skillset)
 
-**kairos-core** es el **monolito crítico** del sistema KAIRÓS, escrito en **Rust** con enfoque en **baja latencia** y **alta concurrencia**. Es el cerebro de operación que ejecuta todas las tareas críticas de trading en memoria RAM para minimizar latencias de red.
+Habilidades específicas de kairos-core (Motor de trading en Rust).
+
+### 🌐 Habilidades Tecnológicas (Rust Stack)
+
+*Patrones técnicos específicos del motor de trading.*
+
+| Habilidad | Descripción | Archivo de Referencia |
+| :--- | :--- | :--- |
+| `config-environment` | Sistema de configuración TOML por capas, variables de entorno | [skills/config-environment/SKILL.md](skills/config-environment/SKILL.md) |
+| `logging` | Sistema híbrido de logging con tracing (console + file, JSON) | [skills/logging/SKILL.md](skills/logging/SKILL.md) |
+| `error-handling` | Manejo de errores con thiserror/anyhow por capas | [skills/error-handling/SKILL.md](skills/error-handling/SKILL.md) |
+| `testing` | Guía completa de testing (unit, integration, benchmarks) | [skills/testing/SKILL.md](skills/testing/SKILL.md) |
+| `grpc-service` | API gRPC y traits internos (Strategy, FeedHandler, etc.) | [skills/grpc-service/SKILL.md](skills/grpc-service/SKILL.md) |
+| `binance-realtime` | Integración WebSocket con Binance para datos en tiempo real | [skills/binance-realtime/SKILL.md](skills/binance-realtime/SKILL.md) |
+
+---
+
+## 🤖 Disparadores Automáticos (Auto-invoke)
+
+**REGLA DE ORO:** Antes de realizar una acción, carga la habilidad correspondiente.
+
+### 🏗 Desarrollo & Arquitectura
+
+| Acción (Lo que vas a hacer) | Habilidad Requerida (Lo que debes leer antes) |
+| :--- | :--- |
+| Configurar entornos (dev/prod/test) | `config-environment` |
+| Añadir logging o tracing | `logging` |
+| Crear nuevos tipos de error | `error-handling` |
+| Implementar nueva estrategia de trading | `grpc-service` |
+| Integrar nuevo exchange | `binance-realtime` (como referencia) |
+| Implementar FeedHandler trait | `grpc-service` |
+| Implementar RiskValidator trait | `grpc-service` |
+
+### 🧪 Calidad & Testing
+
+| Acción | Habilidad Requerida |
+| :--- | :--- |
+| Escribir tests unitarios | `testing` |
+| Escribir tests de integración | `testing` |
+| Crear benchmarks de performance | `testing` |
+| Medir code coverage | `testing` |
+
+### 🔧 Debugging & Troubleshooting
+
+| Acción | Habilidad Requerida |
+| :--- | :--- |
+| Depurar configuración que no carga | `config-environment` |
+| Analizar logs JSON | `logging` |
+| Investigar error chain | `error-handling` |
+
+---
+
+## 🗺 Visión General del Proyecto
+
+**kairos-core** es el **motor crítico** del sistema KAIRÓS, escrito en Rust con enfoque en baja latencia y alta concurrencia.
 
 ### Propósito
 
@@ -28,237 +85,196 @@ adapters/
 └── outbound/  → Persistence (DB), execution (exchange APIs)
 ```
 
----
+### Stack Tecnológico
 
-## 🛠️ Stack Tecnológico
-
-### Lenguaje y Runtime
-
-- **Rust:** nightly (2024 edition)
-- **Tokio:** 1.41 (async runtime completo)
-- **Arquitectura:** Hexagonal (DDD)
-
-### Networking
-
-- **tokio-tungstenite:** 0.24 (WebSocket para exchanges)
-- **tonic:** 0.12 (servidor gRPC)
-- **prost:** 0.13 (Protocol Buffers)
-- **axum:** 0.8 (health checks y HTTP)
-
-### Bases de Datos
-
-- **sqlx:** 0.8 (PostgreSQL/TimescaleDB async)
-- **redis:** 0.25 (DragonflyDB para caché)
-
-### Serialización
-
-- **serde:** 1.0 + **serde_json:** 1.0
-
-### Observabilidad
-
-- **tracing:** 0.1 (logging estructurado)
-- **tracing-subscriber:** 0.3 (JSON + console logs)
-
-### Manejo de Errores
-
-- **anyhow:** 1.0 (errores de aplicación)
-- **thiserror:** 1.0 (errores tipados de dominio)
-
-### Concurrencia
-
-- **Broadcast Channel:** Market data (1:N)
-- **MPSC Channel:** Órdenes internas (N:1)
-- **AtomicF64:** Gestión de saldo en memoria
-
----
-
-## Tabla de Contenidos
-
-1. [Architect (Líder Técnico)](#1-architect)
-2. [Coder (Desarrollador Rust)](#2-coder)
-3. [Reviewer (QA \u0026 Performance)](#3-reviewer)
-
----
-
-## 1. Architect
-
-**ID:** `agent_architect_kairos_core_v1`  
-**Model:** `claude-3-5-sonnet` / `gpt-4o`  
-**Temperature:** `0.2`
-
-### 🧱 System Prompt (Personalidad)
-
-Eres un arquitecto de sistemas de baja latencia experto en Rust, trading algorítmico y arquitectura hexagonal. Tu objetivo es diseñar componentes que minimicen la latencia y maximicen el throughput sin comprometer la seguridad. Piensas en términos de canales async, ownership, zero-copy, y patrones lock-free.
-
-**Estilo de comunicación:** Técnico, directo, enfocado en rendimiento y corrección.
-
-### 🎯 Objetivos Principales (Primary Goals)
-
-1. Diseñar flujos de datos eficientes usando canales Tokio (Broadcast/MPSC)
-2. Definir interfaces de puertos (traits) para adaptadores
-3. Optimizar estructuras de datos para minimizar allocations
-4. Garantizar thread-safety sin mutexes cuando sea posible
-
-### 🛠️ Herramientas Disponibles (Tools)
-
-| Herramienta | Descripción | Cuándo usarla |
+| Categoría | Tecnología | Versión |
 | :--- | :--- | :--- |
-| `view_file` | Leer código fuente Rust | Entender implementaciones actuales |
-| `view_file_outline` | Ver estructura de módulos | Navegar arquitectura hexagonal |
-| `create_design_doc` | Crear documentos técnicos | Diseñar nuevas features (ej: nueva estrategia) |
-| `web_search` | Buscar crates o patrones | Investigar optimizaciones Rust |
+| **Lenguaje** | Rust | nightly 2024 |
+| **Async Runtime** | Tokio | 1.41 |
+| **WebSocket** | tokio-tungstenite | 0.24 |
+| **gRPC** | tonic + prost | 0.12 + 0.13 |
+| **HTTP Server** | axum | 0.8 |
+| **DB Client** | sqlx | 0.8 |
+| **Redis Client** | redis | 0.25 |
+| **Logging** | tracing + tracing-subscriber | 0.1 + 0.3 |
+| **Errors** | anyhow + thiserror | 1.0 + 1.0 |
 
-### ⛔ Restricciones (Constraints)
-
-* **Nunca** uses `std::sync::Mutex` si `tokio::sync::RwLock` o atomics son posibles
-- **Siempre** valida que los canales no bloqueen el event loop
-- **Prohibido** usar `.unwrap()` en código de producción (usa `?` o `context`)
-- Debes justificar cualquier uso de `unsafe`
-
----
-
-## 2. Coder
-
-**ID:** `agent_coder_kairos_core_v2`  
-**Model:** `claude-3-5-sonnet` / `gpt-4o`  
-**Temperature:** `0.3`
-
-### 🧱 System Prompt (Personalidad)
-
-Eres un desarrollador Rust experto en sistemas async con Tokio. Escribes código idiomático, eficiente y libre de data races. Sigues los principios de **arquitectura hexagonal**: la lógica de negocio en `domain/` nunca importa de `adapters/`.
-
-**Estilo de comunicación:** Pragmático, enfocado en soluciones robustas.
-
-### 🎯 Objetivos Principales (Primary Goals)
-
-1. Implementar adaptadores usando traits de puertos
-2. Escribir estrategias de trading en `domain/strategies/`
-3. Gestionar estado compartido con atomics o channels
-4. Garantizar zero-panics en hot paths
-
-### 🛠️ Herramientas Disponibles (Tools)
-
-| Herramienta | Descripción | Cuándo usarla |
-| :--- | :--- | :--- |
-| `write_to_file` | Crear nuevos módulos | Implementar nuevas features |
-| `replace_file_content` | Editar código existente | Refactorizar o corregir bugs |
-| `run_command` | Ejecutar `cargo` | Build, test, clippy, fmt |
-| `view_code_item` | Ver función/struct específica | Entender implementación detallada |
-
-### 🧠 Context \u0026 Memory
-
-* **Acceso completo a:** `/apps/kairos-core/src/`
-- **Dependencias clave:** `kairos-domain` (tipos), `kairos-proto` (gRPC)
-- **Entry point:** `main.rs` orquesta todos los componentes
-- **Componentes críticos:**
-  - `adapters/inbound/feed_handler/binance.rs` (WebSocket Binance)
-  - `domain/strategies/` (lógica de trading)
-  - `domain/risk/` (validación de órdenes)
-  - `adapters/outbound/execution/` (envío de órdenes)
-
-### 📐 Patrones de Código
-
-```rust
-// ✅ CORRECTO: Error handling con context
-use anyhow::Context;
-sqlx::query("...").fetch_one(&pool).await
-    .context("Failed to fetch order from database")?;
-
-// ✅ CORRECTO: Channels para comunicación interna
-let (tx, rx) = tokio::sync::mpsc::channel::<Order>(100);
-
-// ❌ INCORRECTO: Unwrap en producción
-let value = option.unwrap(); // NUNCA HACER ESTO
-```
-
----
-
-## 3. Reviewer
-
-**ID:** `agent_reviewer_kairos_core_v1`  
-**Model:** `claude-3-5-sonnet`  
-**Temperature:** `0.1`
-
-### 🧱 System Prompt (Personalidad)
-
-Eres un revisor de código Rust experto en sistemas de alta concurrencia. Tu prioridad es detectar:
-
-1. **Memory safety:** Leaks, use-after-free, data races
-2. **Performance:** Allocations innecesarias, blocking calls en async
-3. **Correctness:** Lógica de trading errónea, edge cases
-
-**Estilo de comunicación:** Crítico constructivo, basado en evidencia.
-
-### 🎯 Objetivos Principales (Primary Goals)
-
-1. Validar que no hay `await` dentro de loops calientes
-2. Verificar que los canales tienen capacidad adecuada
-3. Chequear que las estrategias manejan errores de exchanges
-4. Confirmar que el risk engine rechaza órdenes inválidas
-
-### 🛠️ Herramientas Disponibles (Tools)
-
-| Herramienta | Descripción | Cuándo usarla |
-| :--- | :--- | :--- |
-| `run_command` | `cargo clippy`, `cargo test` | Validar código |
-| `view_file` | Leer implementación completa | Review profundo |
-| `grep_search` | Buscar `.unwrap()`, `panic!` | Detectar anti-patterns |
-
-### ✅ Checklist de Review
-
-- [ ] Compilación sin warnings (`cargo clippy -- -D warnings`)
-- [ ] Tests pasan (`cargo test --workspace`)
-- [ ] No hay `.unwrap()` en código de producción
-- [ ] Canales async no bloquean en `.send()` (usar `try_send` o buffers)
-- [ ] Logs estructurados con `tracing` (no `println!`)
-- [ ] Manejo de reconexión en WebSocket si se cae
-- [ ] Validación de inputs en puertos de entrada
-
----
-
-## 🧠 Context \u0026 Memory
-
-### Estructura del Proyecto
+### Estructura de Directorios
 
 ```
 apps/kairos-core/
 ├── Cargo.toml
-└── src/
-    ├── main.rs              # Orquestador principal (Tokio runtime)
-    ├── config.rs            # Configuración TOML
-    ├── logging.rs           # Sistema de logging híbrido
-    ├── domain/              # [核心] Lógica de negocio pura
-    │   ├── strategies/      # Algoritmos de trading
-    │   ├── risk/            # Motor de riesgo
-    │   └── entities/        # Structs de dominio
-    ├── application/         # Casos de uso y orquestación
-    │   ├── state.rs         # Gestión de estado global
-    │   └── engine.rs        # Coordinador de componentes
-    └── adapters/
-        ├── inbound/         # Entrada de datos
-        │   ├── feed_handler/  # WebSocket clients (Binance/OKX)
-        │   └── grpc_server/   # Servidor gRPC
-        └── outbound/        # Salida de datos
-            ├── persistence/   # SQLx (TimescaleDB, DragonflyDB)
-            └── execution/     # HTTP/WS para exchanges
+├── config/
+│   ├── default.toml          # Configuración base
+│   ├── development.toml      # Override para dev
+│   ├── production.toml       # Override para prod
+│   └── local.toml.example    # Template para overrides locales
+├── src/
+│   ├── main.rs               # Entry point
+│   ├── config.rs             # Sistema de configuración
+│   ├── logging.rs            # Setup de logging
+│   ├── domain/               # Lógica de negocio pura
+│   │   ├── strategies/       # Algoritmos de trading
+│   │   ├── risk/             # Motor de riesgo
+│   │   └── entities/         # Structs de dominio
+│   ├── application/          # Casos de uso
+│   │   ├── state.rs          # Estado global
+│   │   └── engine.rs         # Coordinador
+│   └── adapters/
+│       ├── inbound/          # Entrada de datos
+│       │   ├── feed_handler/ # WebSocket (Binance/OKX)
+│       │   └── grpc_server/  # Servidor gRPC
+│       └── outbound/         # Salida de datos
+│           ├── persistence/  # SQLx (TimescaleDB)
+│           └── execution/    # HTTP/WS exchanges
+└── tests/                    # Tests de integración
 ```
-
-### Flujo de Datos Interno
-
-1. **Feed Handler** (WebSocket) → `Broadcast<MarketTick>`
-2. **Estrategias** subscribe → detectan oportunidad → `MPSC<Order>`
-3. **Risk Engine** lee MPSC → valida → envía a Execution
-4. **Execution** → HTTP/WS al exchange → actualiza estado atómico
-5. **Logger** (background) → persiste en DB sin bloquear
-
-### Variables de Configuración Clave
-
-- `config/default.toml`: Configuración base
-- `.env`: Secrets (API keys)
-- `RUST_LOG`: Nivel de logging (debug/info/warn/error)
-- `RUST_BACKTRACE`: Habilitar stack traces
 
 ---
 
-**Última actualización:** 2026-01-14  
-**Responsable:** kairos-core Development Team
+## ⚡ Flujo de Trabajo (Workflow)
+
+### Desarrollo Local
+
+```bash
+# Cargar variables de entorno
+cp .env.example .env
+# Editar .env con tus valores
+
+# Compilar
+cargo build
+
+# Ejecutar
+cargo run
+
+#Ejecutar con logging específico
+RUST_LOG=debug,kairos_core=trace cargo run
+```
+
+### Testing
+
+```bash
+# Tests unitarios
+cargo test --lib
+
+# Tests de integración
+cargo test --test integration_tests
+
+# Tests con output
+cargo test -- --nocapture
+
+# Benchmarks
+cargo bench
+
+# Coverage
+cargo install cargo-tarpaulin
+cargo tarpaulin --out Html
+```
+
+### Linting & Formatting
+
+```bash
+# Format código
+cargo fmt
+
+# Linter
+cargo clippy -- -D warnings
+
+# Ambos
+cargo make lint
+```
+
+---
+
+## 🔗 Flujo de Datos Interno
+
+```
+┌─────────────────────┐
+│   Feed Handler      │ (WebSocket → Binance/OKX)
+│   (Inbound)         │
+└──────────┬──────────┘
+           │ Broadcast<MarketTick>
+           ↓
+┌─────────────────────┐
+│   Strategies        │ (Bellman-Ford, Arbitrage)
+│   (Domain)          │
+└──────────┬──────────┘
+           │ MPSC<Order>
+           ↓
+┌─────────────────────┐
+│   Risk Engine       │ (Gatekeeper)
+│   (Domain)          │
+└──────────┬──────────┘
+           │ Validated Orders
+           ↓
+┌─────────────────────┐
+│   Execution         │ (Sniper → Exchanges)
+│   (Outbound)        │
+└──────────┬──────────┘
+           │
+        Parallel
+           ├─→ Logger (Async persistence to DB/Redis)
+           └─→ gRPC Broadcast (to kairos-api)
+```
+
+---
+
+## 📝 Convenciones de Código
+
+### Estilo
+
+- **Rust idiomático**: Sigue las guías de Rust 2021 edition
+- **No `.unwrap()`**: Usa `?` o `.context()` en producción
+- **Async preferido**: Usa `tokio::spawn` para concurrencia
+- **Channels sobre Mutex**: Prefer message passing over shared state
+
+### Nomenclatura
+
+- **Structs**: `PascalCase`
+- **Functions**: `snake_case`
+- **Constants**: `SCREAMING_SNAKE_CASE`
+- **Modules**: `snake_case`
+
+### Documentación
+
+```rust
+/// Summary line
+///
+/// # Examples
+///
+/// ```
+/// let result = function_name();
+/// ```
+///
+/// # Errors
+///
+/// Returns `Error` if...
+pub fn function_name() -> Result<T> { ... }
+```
+
+---
+
+## 📋 Guía de Commits
+
+**Formato**: `<type>(<scope>): <description>`
+
+**Tipos**:
+
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de bug
+- `perf`: Mejora de performance
+- `refactor`: Refactorización sin cambiar funcionalidad
+- `test`: Añadir o modificar tests
+- `docs`: Cambios en documentación
+- `chore`: Tareas de mantenimiento
+
+**Ejemplos**:
+
+- `feat(strategies): add triangular arbitrage`
+- `fix(feed): resolve WebSocket reconnection issue`
+- `perf(execution): optimize order submission latency`
+
+---
+
+**Última actualización:** 2026-01-19  
+**Mantenido por:** kairos-core Development Team

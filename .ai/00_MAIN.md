@@ -1,144 +1,217 @@
-# Agent Definitions Registry - KAIRÓS
+# KAIRÓS Monorepo: Configuración de Agentes
 
-> **Note:** Este archivo define el contexto general del proyecto KAIRÓS para los agentes de IA que colaboran en su desarrollo.
+## 📘 Filosofía de Uso
 
----
-
-## 📌 Resumen del Proyecto
-
-**KAIRÓS** es un sistema de **trading algorítmico de alta frecuencia (HFT)** diseñado con arquitectura híbrida para maximizar la velocidad de ejecución y minimizar la latencia. El proyecto sigue principios de **Domain-Driven Design (DDD)** y **Arquitectura Hexagonal** para separar la lógica de negocio de las implementaciones técnicas.
-
-### Objetivo Principal
-
-Crear un motor de trading de **baja latencia** capaz de ejecutar estrategias de arbitraje y triangulación en tiempo real, con soporte para múltiples exchanges de criptomonedas (Binance, OKX).
-
-### Arquitectura General
-
-El sistema se divide en tres capas:
-
-1. **El Hierro** - Infraestructura física y sistema operativo optimizado
-2. **El Monolito** - Motor de trading en Rust (kairos-core) con procesamiento en memoria
-3. **Los Satélites** - Microservicios complementarios (API Java, Dashboard Angular)
+**Este documento define el contexto del monorepo KAIRÓS para agentes de IA.**
+Antes de trabajar en un componente específico, consulta su contexto individual en `apps/*/. ai/00_MAIN.md`.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🛠 Habilidades Disponibles (Skillset)
 
-### Backend - Motor de Trading (Rust)
+Habilidades de nivel monorepo que aplican a todos los componentes.
 
-- **Lenguaje:** Rust (nightly 2024 edition)
-- **Runtime:** Tokio 1.41 (async/await)
-- **Networking:**
-  - WebSocket: `tokio-tungstenite 0.24`
-  - gRPC: `tonic 0.12` + `prost 0.13`
-- **Bases de Datos:**
-  - PostgreSQL/TimescaleDB: `sqlx 0.8`
-  - DragonflyDB (Redis): `redis 0.25`
-- **Serialización:** `serde 1.0` + `serde_json 1.0`
-- **Observabilidad:** `tracing 0.1` + `tracing-subscriber 0.3`
-- **Manejo de Errores:** `anyhow 1.0` + `thiserror 1.0`
+### 🌐 Habilidades Tecnológicas del Monorepo
 
-### Backend - API Gateway (Java Spring Boot)
+*Patrones técnicos comunes a todo el proyecto.*
 
-- **Lenguaje:** Java 21 (LTS)
-- **Framework:** Spring Boot 3.2.1 (WebFlux - Reactivo)
-- **Base de Datos:** R2DBC (PostgreSQL reactivo)
-- **Redis:** Spring Data Redis Reactive
-- **Build:** Maven 3.9+
-- **Comunicación:** REST + WebSocket + gRPC Client
+| Habilidad | Descripción | Archivo de Referencia |
+| :--- | :--- | :--- |
+| `docker-compose` | Orquestación de servicios, networking, volúmenes | `infrastructure/docker/` |
+| `cargo-make` | Build automation, tasks del workspace Rust | `Makefile.toml` |
+| `github-actions` | CI/CD pipelines, workflows de deployment | `.github/workflows/` |
+| `monorepo-structure` | Organización de apps, libs, docs | `PROJECT_STRUCTURE.md` |
 
-### Frontend - Dashboard (Angular)
+### 🧠 Habilidades de Contexto Específico
 
-- **Framework:** Angular 21.0.0
-- **Lenguaje:** TypeScript ~5.0.0
-- **Runtime:** Node.js 18+
-- **State Management:** RxJS ~7.8.0
-- **Comunicación:** HTTP REST + WebSocket
+*Referencias a contextos de componentes individuales.*
+
+| Habilidad | Descripción | Archivo de Referencia |
+| :--- | :--- | :--- |
+| `kairos-core-context` | Motor de trading Rust - Arquitectura hexagonal | [apps/kairos-core/.ai/00_MAIN.md](apps/kairos-core/.ai/00_MAIN.md) |
+| `kairos-api-context` | API Gateway Java - Spring Boot patterns | [apps/kairos-api/.ai/00_MAIN.md](apps/kairos-api/.ai/00_MAIN.md) |
+| `kairos-web-context` | Dashboard Angular - UI components | [apps/kairos-web/.ai/00_MAIN.md](apps/kairos-web/.ai/00_MAIN.md) |
+
+---
+
+## 🤖 Disparadores Automáticos (Auto-invoke)
+
+**REGLA DE ORO:** Antes de realizar una acción, carga el contexto apropiado.
+
+### 🏗 Desarrollo & Arquitectura del Monorepo
+
+| Acción (Lo que vas a hacer) | Habilidad Requerida (Lo que debes leer antes) |
+| :--- | :--- |
+| Modificar Docker Compose | `docker-compose` |
+| Añadir nueva tarea cargo-make | `cargo-make` |
+| Modificar CI/CD pipeline | `github-actions` |
+| Reorganizar estructura del monorepo | `monorepo-structure` |
+| Trabajar en motor de trading | `kairos-core-context` |
+| Trabajar en API Gateway | `kairos-api-context` |
+| Trabajar en Dashboard | `kairos-web-context` |
+
+### 🚀 Deployment & Infrastructure
+
+| Acción | Habilidad Requerida |
+| :--- | :--- |
+| Levantar ambiente local | `docker-compose` |
+| Configurar nueva base de datos | `docker-compose` + `monorepo-structure` |
+| Deploy a producción | `github-actions` |
+
+---
+
+## 🗺 Visión General del Proyecto
+
+**KAIRÓS** es un sistema de trading algorítmico HFT con arquitectura híbrida Rust/Java/Angular.
+
+### Principios de Diseño
+
+1. **El Hierro** - Infraestructura optimizada para baja latencia
+2. **El Monolito** - Motor Rust con procesamiento en memoria RAM
+3. **Los Satélites** - Servicios complementarios para UI y APIs externas
+
+### Arquitectura de Tres Capas
+
+```
+┌─────────────────────────────────────────────┐
+│         DASHBOARD (Angular)                 │
+│         kairos-web                          │
+└──────────────┬──────────────────────────────┘
+               │ REST + WebSocket
+               ↓
+┌─────────────────────────────────────────────┐
+│         API GATEWAY (Java Spring Boot)      │
+│         kairos-api                          │
+└──────────────┬──────────────────────────────┘
+               │ gRPC + DragonflyDB Pub/Sub
+               ↓
+┌─────────────────────────────────────────────┐
+│      MOTOR DE TRADING (Rust + Tokio)        │
+│      kairos-core                            │
+│  ┌──────────────────────────────────────┐  │
+│  │ Feed Handler → Strategies → Sniper   │  │
+│  └──────────────────────────────────────┘  │
+└──────────────┬──────────────────────────────┘
+               │
+               ↓
+┌─────────────────────────────────────────────┐
+│  INFRAESTRUCTURA                            │
+│  - TimescaleDB (series temporales)          │
+│  - DragonflyDB (caché Redis-compatible)     │
+│  - Binance/OKX WebSocket APIs               │
+└─────────────────────────────────────────────┘
+```
+
+### Estructura del Monorepo
+
+| Directorio | Propósito | Tecnologías |
+| :--- | :--- | :--- |
+| `/apps/kairos-core` | Motor principal Rust | Tokio, WebSocket, gRPC Server |
+| `/apps/kairos-api` | API Gateway Java | Spring Boot WebFlux, R2DBC |
+| `/apps/kairos-web` | Dashboard Angular | Angular 21, RxJS |
+| `/libs/kairos-proto` | Contratos gRPC | Protocol Buffers |
+| `/libs/kairos-domain` | Entidades compartidas | Rust crates |
+| `/infrastructure` | Docker, DB, scripts | Docker Compose, SQL |
+| `/docs` | Documentación técnica | Markdown |
+| `/examples` | Templates de referencia | Markdown |
+
+---
+
+## ⚡ Flujo de Trabajo (Workflow)
+
+### Instalación Inicial
+
+```bash
+# Clonar repositorio
+git clone <repository-url>
+cd Trading-algorithms
+
+# Instalar Rust toolchain
+rustup default nightly
+
+# Build completo del workspace
+cargo build --workspace
+```
+
+### Desarrollo Local
+
+```bash
+# Levantar infraestructura (DB + Redis)
+docker compose up -d
+
+# Correr motor de trading
+cd apps/kairos-core
+cargo run
+
+# Correr API (en otra terminal)
+cd apps/kairos-api
+mvn spring-boot:run
+
+# Correr Dashboard (en otra terminal)
+cd apps/kairos-web
+npm start
+```
+
+### Testing
+
+```bash
+# Tests de todo el workspace Rust
+cargo test --workspace
+
+# Tests con coverage
+cargo make test-coverage
+
+# Tests API Java
+cd apps/kairos-api
+mvn test
+
+# Tests Dashboard
+cd apps/kairos-web  
+npm test
+```
+
+### Build de Producción
+
+```bash
+# Build completo con cargo-make
+cargo make build-all
+
+# Build Docker images
+docker compose build
+```
+
+---
+
+## 📋 Stack Tecnológico
+
+### Backend - Motor (Rust)
+
+- **Lenguaje**: Rust nightly 2024
+- **Runtime**: Tokio 1.41
+- **Networking**: tokio-tungstenite, tonic, prost
+- **DB**: sqlx (PostgreSQL), redis
+- **Observability**: tracing, tracing-subscriber
+
+### Backend - API (Java)
+
+- **Lenguaje**: Java 21 LTS
+- **Framework**: Spring Boot 3.2.1 WebFlux
+- **DB**: R2DBC PostgreSQL, Spring Data Redis Reactive
+- **Build**: Maven 3.9+
+
+### Frontend (Angular)
+
+- **Framework**: Angular 21.0.0
+- **Lenguaje**: TypeScript ~5.0.0
+- **State**: RxJS ~7.8.0
 
 ### Infraestructura
 
-- **Bases de Datos:**
-  - DragonflyDB (caché en memoria, compatible con Redis)
-  - TimescaleDB (PostgreSQL 16 + extensión Timescale para series temporales)
-- **Containerización:** Docker + Docker Compose
-- **CI/CD:** GitHub Actions
-- **Orchestration (Futuro):** Kubernetes 1.28+
-
----
-
-## 📂 Estructura del Monorepo
-
-```
-kairos-monorepo/
-├── apps/
-│   ├── kairos-core/       # [MONOLITO] Motor de Trading (Rust)
-│   ├── kairos-api/        # [SATÉLITE] API Gateway (Java Spring Boot)
-│   └── kairos-web/        # [SATÉLITE] Dashboard (Angular)
-├── libs/
-│   ├── kairos-domain/     # Entidades compartidas (Rust)
-│   └── kairos-proto/      # Contratos gRPC (.proto)
-├── infrastructure/
-│   ├── docker/            # Dockerfiles y Compose
-│   ├── db/                # Scripts SQL y configuraciones
-│   └── k8s/               # Manifiestos Kubernetes (futuro)
-├── research/              # Notebooks y Python AI (futuro)
-├── examples/              # Se encuentran plantilas que escifican como de debe hacer las cosas 
-└── docs/                  # Documentación técnica
-```
-```
-
-kairos-monorepo/
-├── AGENTS.md               # Contexto global lee docs para enteder el contexto 
-│
-├── apps/
-│   ├── kairos-core/           # [RUST]
-│   │   ├── .ai/
-│   │   ├── 00_CORE_MANIFEST.md    <-- [SIEMPRE ACTIVO] Reglas Generales del Proyecto Core (Rust, erores, Estilo)
-│   │   └── skills/                <-- [BAJO DEMANDA] Reglas Específicas
-│   │       ├── strategy_impl.md   # Cómo crear una estrategia de trading (Matemáticas, Risk Mgmt)
-│   │       ├── db_migration.md    # Cómo alterar tablas en TimescaleDB (Migraciones, SQLx)
-│   │       └── testing_guide.md   # Cómo escribir tests unitarios vs integration
-│   │   ├── src/
-│   │   ├── AGENTS.md              # Contexto global que lee .ai lo especifioc y lee las skills si es necesario
-│   │   └── Cargo.toml
-│
-├── .ai/
-│   ├── 00_CORE_MANIFEST.md    <-- [SIEMPRE ACTIVO] Reglas Generales del Proyecto para (cargo-makefile, docker-compose, documentation, )
-│   │
-│   └── skills/                <-- [BAJO DEMANDA] Reglas Específicas
-│       └── Dockerfile.md   # Cómo escribir docker file siguiendo estas reglas o habilidades 
-└── docs/                       # Documentación para Humanos
-    ├── ARCHITECTURE.md         # Diagramas de alto nivel
-    └── CONVENTIONS.md          # Guías de estilo detalladas
-
-
-
-```
----
-
-## 🎯 Componentes Principales
-
-### 1. kairos-core (Rust)
-
-Motor principal con 5 componentes críticos:
-
-- **Feed Handler:** Ingesta de datos de exchanges vía WebSocket
-- **Logger:** Persistencia asíncrona en DragonflyDB y TimescaleDB
-- **Sprinters:** Estrategias de trading rápido (arbitraje/triangulación)
-- **Gatekeeper:** Motor de gestión de riesgo
-- **Sniper:** Ejecución de órdenes en exchanges
-
-### 2. kairos-api (Java)
-
-- Endpoints REST para consultas históricas
-- WebSocket para streaming en tiempo real
-- Cliente gRPC para comunicación con kairos-core
-
-### 3. kairos-web (Angular)
-
-- Dashboard con gráficos en tiempo real
-- Configuración de estrategias
-- Monitoreo de balances y órdenes
+- **Bases de Datos**:
+  - DragonflyDB (Redis-compatible)
+  - TimescaleDB (PostgreSQL 16 + extensión)
+- **Containerización**: Docker + Docker Compose
+- **CI/CD**: GitHub Actions
 
 ---
 
@@ -146,55 +219,37 @@ Motor principal con 5 componentes críticos:
 
 ### Interna (Rust)
 
-- **Broadcast Channel:** Feed Handler → Estrategias + Logger
-- **MPSC Channel:** Estrategias → Motor de Riesgo → Ejecución
+- **Broadcast Channel**: Feed Handler → Estrategias + Logger
+- **MPSC Channel**: Estrategias → Risk Engine → Execution
 
 ### Externa
 
-- **Monolito → Satélites:** DragonflyDB Pub/Sub
-- **Satélites → Monolito:** gRPC (tonic)
-- **Dashboard → API:** REST + WebSocket
+- **Core → API**: DragonflyDB Pub/Sub + gRPC
+- **API → Web**: REST + WebSocket
+- **Core → Exchanges**: WebSocket (Binance, OKX)
 
 ---
 
-## 🔐 Configuración
+## 📝 Guía de Commits
 
-- **Rust:** Archivos TOML (`config/default.toml`)
-- **Java:** `application.yml`
-- **Secrets:** Variables de entorno (`.env.example` como referencia)
+Usamos **Conventional Commits**:
 
----
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de bug
+- `chore`: Mantenimiento
+- `docs`: Documentación
+- `test`: Tests
+- `refactor`: Refactorización
 
-## 📝 Convenciones de Desarrollo
+**Formato**: `<type>(<scope>): <description>`
 
-### Versioning
+**Ejemplos**:
 
-- **SemVer 2.0.0** en todos los componentes
-- Versión actual: `0.1.0` (pre-alpha)
-
-### Testing
-
-- **Rust:** `cargo test` + `cargo-tarpaulin` (coverage)
-- **Java:** JUnit 5 + Reactor Test + JaCoCo
-- **Angular:** Jasmine + Karma
-
-### Linting
-
-- **Rust:** `rustfmt` + `clippy`
-- **Java:** Checkstyle (Maven plugin)
-- **Angular:** ESLint + Prettier
+- `feat(core): add triangular arbitrage strategy`
+- `fix(api): resolve WebSocket reconnection issue`
+- `docs(monorepo): update deployment guide`
 
 ---
 
-## 🚀 Exchanges Soportados
-
-- ✅ **Binance** (WebSocket API)
-- ✅ **OKX** (WebSocket API)
-- 🔜 Otros exchanges (futuro)
-
----
-##  🧠 Context & Memory
----
-**Última actualización:** 2026-01-14  
+**Última actualización:** 2026-01-19  
 **Mantenido por:** KAIRÓS Development Team
-

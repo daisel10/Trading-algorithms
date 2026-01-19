@@ -1,64 +1,83 @@
-# Agent Definitions Registry
+# Kauiros: Directrices del Repositorio & Configuración de Agentes
 
-> **Note:** Este archivo define los perfiles, comportamientos y herramientas de los agentes del sistema [Nombre del Proyecto].
-
----
-
-## Tabla de Contenidos
-1. [Architect (Líder Técnico)](#1-architect)
-2. [Coder (Desarrollador)](#2-coder)
-3. [Reviewer (QA)](#3-reviewer)
+## 📘 Filosofía de Uso
+**Este documento es la fuente de la verdad para el flujo de trabajo en Kauiros.**
+Su objetivo es reducir la carga cognitiva: no memorices comandos, consulta las tablas de "Habilidades" según el contexto en el que te encuentres.
 
 ---
 
-## 1. Architect
-**ID:** `agent_architect_v1`
-**Model:** `gpt-4o` / `claude-3-5-sonnet`
-**Temperature:** `0.2` (Baja para mayor precisión y determinismo)
+## 🛠 Habilidades Disponibles (Skillset)
+Estas son las herramientas permitidas y los patrones de diseño aprobados para Kauiros.
 
-### 🧱 System Prompt (Personalidad)
-Eres un arquitecto de software senior experto en sistemas distribuidos y patrones de diseño. Tu objetivo es planificar estructuras robustas antes de que se escriba una sola línea de código. Piensas en términos de escalabilidad, seguridad y mantenibilidad.
-**Estilo de comunicación:** Formal, técnico, conciso y directivo.
+### 🌐 Habilidades Tecnológicas (Tech Stack)
+*Patrones técnicos puros, agnósticos al negocio.*
 
-### 🎯 Objetivos Principales (Primary Goals)
-1. Analizar requerimientos de alto nivel.
-2. Definir la estructura de carpetas y tecnologías.
-3. Crear diagramas de flujo y especificaciones técnicas.
-
-### 🛠️ Herramientas Disponibles (Tools)
-| Herramienta | Descripción | Cuándo usarla |
+| Habilidad | Descripción | Archivo de Referencia |
 | :--- | :--- | :--- |
-| `read_file` | Lee archivos del repositorio. | Para entender el contexto actual. |
-| `create_design_doc` | Genera archivos Markdown. | Para escribir especificaciones. |
-| `web_search` | Busca patrones actuales. | Cuando se requiere verificar una tecnología. |
+| `[LENGUAJE]` | [Ej: TypeScript, Python, Rust] - Tipado estricto, normas base. | `docs/skills/LANG.md` |
+| `[FRAMEWORK_BACK]` | [Ej: FastAPI, Django, Node] - Estructura de APIs, controladores. | `docs/skills/BACKEND.md` |
+| `[FRAMEWORK_FRONT]` | [Ej: React, Vue, Svelte] - Componentes, estado, UI. | `docs/skills/FRONTEND.md` |
+| `[DB_ORM]` | [Ej: Prisma, SQLAlchemy] - Modelado de datos y migraciones. | `docs/skills/DB.md` |
+| `[ESTILOS]` | [Ej: Tailwind, CSS Modules] - Sistema de diseño y tokens. | `docs/skills/STYLES.md` |
 
-### ⛔ Restricciones (Constraints)
-* Nunca escribes código de implementación, solo interfaces o pseudo-código.
-* Debes pedir confirmación antes de finalizar una especificación crítica.
+### 🧠 Habilidades de Dominio (Lógica de Kauiros)
+*Reglas específicas de negocio y arquitectura de este proyecto.*
+
+| Habilidad | Descripción | Archivo de Referencia |
+| :--- | :--- | :--- |
+| `kauiros-core` | Arquitectura hexagonal/limpia, entidades principales. | `docs/skills/CORE.md` |
+| `kauiros-auth` | Flujos de autenticación, roles y permisos. | `docs/skills/AUTH.md` |
+| `kauiros-ui` | Biblioteca de componentes visuales propios. | `docs/skills/UI.md` |
+| `kauiros-algo` | [Si aplica] Algoritmos matemáticos o de optimización específicos. | `docs/skills/ALGO.md` |
+
+---
+
+## 🤖 Disparadores Automáticos (Auto-invoke)
+**REGLA DE ORO:** Antes de realizar una acción de la columna izquierda, el agente o desarrollador DEBE cargar el contexto de la habilidad a la derecha.
+
+### 🏗 Desarrollo & Arquitectura
+| Acción (Lo que vas a hacer) | Habilidad Requerida (Lo que debes leer antes) |
+| :--- | :--- |
+| Crear nuevos modelos de base de datos | `[DB_ORM]` |
+| Crear nuevos endpoints o rutas | `[FRAMEWORK_BACK]` + `kauiros-core` |
+| Diseñar nuevas pantallas/vistas | `kauiros-ui` + `[ESTILOS]` |
+| Implementar lógica de negocio compleja | `kauiros-core` |
+| Modificar el sistema de usuarios | `kauiros-auth` |
+
+### 🧪 Calidad & Testing
+| Acción | Habilidad Requerida |
+| :--- | :--- |
+| Escribir tests unitarios | `[TESTING_LIB]` |
+| Escribir tests de integración (E2E) | `[E2E_LIB]` |
+| Reportar un bug | `kauiros-docs` |
+
+### 🚀 Despliegue & Mantenimiento (DevOps)
+| Acción | Habilidad Requerida |
+| :--- | :--- |
+| Crear un Pull Request | `kauiros-git-flow` |
+| Actualizar documentación | `kauiros-docs` |
+| Modificar CI/CD Pipelines | `kauiros-ci` |
 
 ---
 
-## 2. Coder
-**ID:** `agent_coder_v2`
+## 🗺 Visión General del Proyecto
+**Kauiros** es [Describe aquí en una frase la misión del proyecto].
 
-**Temperature:** `0.4` (Balance entre creatividad y sintaxis correcta)
+### Estructura de Directorios
+*Ubicación de los componentes clave para facilitar la navegación rápida.*
 
-### 🧱 System Prompt (Personalidad)
-Eres un desarrollador experto en [Lenguaje, ej: Rust/Python]. Te enfocas en escribir código limpio, eficiente y bien documentado. Sigues los principios SOLID y DRY religiosamente.
-**Estilo de comunicación:** Pragmático, enfocado en la solución.
-
-### 🎯 Objetivos Principales (Primary Goals)
-1. Traducir especificaciones técnicas a código funcional.
-2. Refactorizar código existente para mejorar el rendimiento.
-3. Escribir pruebas unitarias.
- 
-### 🛠️ Herramientas Disponibles (Tools)
-* `write_file`: Crear o sobreescribir código.
-* `run_tests`: Ejecutar la suite de pruebas local.
-* `linter_check`: Verificar estilo de código.
-
-### 🧠 Context & Memory
-* Acceso de lectura a `/src` y `/docs`.
-* Mantiene memoria de los últimos 10 mensajes del hilo actual.
+| Directorio | Propósito | Tecnologías Clave |
+| :--- | :--- | :--- |
+| `/apps` | Aplicaciones finales (Web, Móvil, API) | [Tech] |
+| `/packages` | Librerías compartidas y utilidades | [Tech] |
+| `/docs` | Documentación y definición de Habilidades | Markdown |
+| `/infra` | Configuración de nube y despliegue | Terraform/Docker |
 
 ---
+
+## ⚡ Flujo de Trabajo (Workflow)
+1.  **Instalación:** `[Comando de instalación]`
+2.  **Arrancar entorno:** `[Comando de start]`
+3.  **Tests:** `[Comando de test]`
+
+**Guía de Commits:** Usamos *Conventional Commits* (`feat`, `fix`, `chore`).
