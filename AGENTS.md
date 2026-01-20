@@ -28,7 +28,8 @@ Estas son las herramientas permitidas y los patrones de diseño aprobados para K
 | `kairos-core` | Motor de trading (Rust) - Arquitectura hexagonal, estrategias, risk management | [apps/kairos-core/.ai/00_MAIN.md](apps/kairos-core/.ai/00_MAIN.md) |
 | `kairos-api` | API Gateway (Java Spring Boot) - REST, WebSocket, gRPC client | [apps/kairos-api/.ai/00_MAIN.md](apps/kairos-api/.ai/00_MAIN.md) |
 | `kairos-web` | Dashboard (Angular) - UI, RxJS, WebSocket streaming | [apps/kairos-web/.ai/00_MAIN.md](apps/kairos-web/.ai/00_MAIN.md) |
-
+| `kairos-domain` | Entidades de dominio (Rust) - Arquitectura hexagonal, estrategias, risk management | [apps/kairos-domain/.ai/00_MAIN.md](apps/kairos-domain/.ai/00_MAIN.md) |
+| `kairos-proto` | Contratos gRPC compartidos | [apps/kairos-proto/.ai/00_MAIN.md](apps/kairos-proto/.ai/00_MAIN.md) |
 ---
 
 ## 🤖 Disparadores Automáticos (Auto-invoke)
