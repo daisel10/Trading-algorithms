@@ -3,6 +3,8 @@ name: {skill-name}
 description: >
   {Brief description of what this skill enables}.
   Trigger: {When the AI should load this skill - be specific}.
+trigger: [always_on | user_initiated]
+glob: [patrón de archivos]
 license: Apache-2.0
 metadata:
   author: prowler-cloud

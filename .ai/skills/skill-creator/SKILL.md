@@ -10,6 +10,8 @@ metadata:
   scope: [root]
   auto_invoke: "Creating new skills"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, WebFetch, WebSearch, Task
+
+
 ---
 
 ## When to Create a Skill
